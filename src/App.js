@@ -5,7 +5,7 @@ import "./index.css"
 export default function App() {
   return (
     <>
-      <NavBar />
+      {/* <NavBar /> */}
       <Main />
     </>
   );

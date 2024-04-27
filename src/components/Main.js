@@ -7,10 +7,11 @@ import Stock from "./Stock";
 export default function Main() {
   return (
     <main className="flex h-screen">
-      <SideBar />
+      {/* <SideBar /> */}
       {/* <UserDetails /> */}
       {/* <Schedule /> */}
-      <Stock />
+      {/* <Stock /> */}
+      
     </main>
   );
 }
