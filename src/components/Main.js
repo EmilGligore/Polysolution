@@ -3,6 +3,7 @@ import SideBar from "./SideBar";
 import UserDetails from "./UserDetails";
 import Schedule from "./Schedule";
 import Stock from "./Stock";
+import Auth from "./Auth"
 
 export default function Main() {
   return (
@@ -11,7 +12,7 @@ export default function Main() {
       {/* <UserDetails /> */}
       {/* <Schedule /> */}
       {/* <Stock /> */}
-      
+      <Auth />
     </main>
   );
 }
