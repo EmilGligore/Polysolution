@@ -6,13 +6,12 @@ import Stock from "./Stock";
 import Auth from "./Auth"
 
 export default function Main() {
-  return (
-    <main className="flex h-screen">
-      {/* <SideBar /> */}
-      {/* <UserDetails /> */}
-      {/* <Schedule /> */}
-      {/* <Stock /> */}
-      <Auth />
-    </main>
+  return (<></>
+    // <main className="flex h-screen">
+      /* <SideBar /> */
+    /* <UserDetails /> */
+      /* <Schedule /> */
+      /* <Stock /> */
+    // </main>
   );
 }
