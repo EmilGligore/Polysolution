@@ -29,7 +29,10 @@ export default function NavBar() {
         >
           <FontAwesomeIcon icon={faBell} style={{ color: "#ffffff" }} />
         </a>
-        <a className="ml-5 border-b-2 py-2 px-2 border-transparent hover:border-white" href="#">
+        <a
+          className="ml-5 border-b-2 py-2 px-2 border-transparent hover:border-white"
+          href="#"
+        >
           <FontAwesomeIcon icon={faUser} style={{ color: "#ffffff" }} />
         </a>
       </div>
