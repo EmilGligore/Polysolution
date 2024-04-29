@@ -73,20 +73,19 @@ export default function Schedule() {
 
     const docRef = doc(db, "cabinets", "cabinets", cabinetName, docId);
 
-    // Include selectedDate in the updateObject
     const updateObject = {
       name: docToUpdate.name,
       startTime: docToUpdate.startTime,
       endTime: docToUpdate.endTime,
       procedure: docToUpdate.procedure,
       doctor: docToUpdate.doctor,
-      date: selectedDate, // Add the selectedDate here
+      date: selectedDate,
     };
 
     if (docToUpdate.isEditable) {
       if (docToUpdate.isNew) {
         try {
-          await setDoc(docRef, updateObject); // This will now include selectedDate
+          await setDoc(docRef, updateObject);
           console.log("Document successfully added!");
           markDocumentAsNotNew(cabinetName, docId);
         } catch (error) {
@@ -94,7 +93,7 @@ export default function Schedule() {
         }
       } else {
         try {
-          await updateDoc(docRef, updateObject); // For existing documents (not covered by the isNew flag)
+          await updateDoc(docRef, updateObject);
           console.log("Document successfully updated!");
         } catch (error) {
           console.error("Error updating document: ", error);
@@ -105,7 +104,6 @@ export default function Schedule() {
     handleToggleEditable(cabinetName, docId);
   };
 
-  // Function to update the document state to mark it as not new
   const markDocumentAsNotNew = (cabinetName, docId) => {
     setCabinets((cabinets) =>
       cabinets.map((cabinet) => {
@@ -114,7 +112,7 @@ export default function Schedule() {
             ...cabinet,
             documents: cabinet.documents.map((doc) => {
               if (doc.id === docId) {
-                return { ...doc, isNew: false }; // Remove the isNew flag
+                return { ...doc, isNew: false };
               }
               return doc;
             }),
@@ -152,15 +150,15 @@ export default function Schedule() {
       return cabinets.map((cabinet) => {
         if (cabinet.name === cabinetName) {
           const newDocument = {
-            id: generateUniqueId(), // Ensure this ID is unique within your documents
+            id: generateUniqueId(),
             startTime: "",
             endTime: "",
             name: "",
             procedure: "",
             doctor: "",
-            isEditable: true, // New document starts in editable mode
-            isNew: true, // Indicate this document is new and not yet saved to Firestore
-            date: selectedDate, // Optional: set the date to the currently selected date
+            isEditable: true,
+            isNew: true,
+            date: selectedDate,
           };
           return { ...cabinet, documents: [...cabinet.documents, newDocument] };
         }
@@ -170,94 +168,126 @@ export default function Schedule() {
   };
 
   return (
-    <div>
-      <input type="date" onChange={handleDateChange}></input>
+    <div className="bg-BackgroundAuth w-screen">
+      <input
+        type="date"
+        onChange={handleDateChange}
+        className="m-4 p-2"
+      ></input>
       {cabinets.map((cabinet) => (
-        <div key={cabinet.name}>
-          <div>
-            <h2>{cabinet.name}</h2>
-            <button onClick={() => addNewDocumentToCabinet(cabinet.name)}>
-              +
+        <div key={cabinet.name} className="mb-4 bg-white w-2/3 rounded ml-10">
+          <div className="flex items-center justify-between p-2">
+            <h2 className="text-lg text-center w-full">{cabinet.name}</h2>
+          </div>
+          <div className="flex justify-between items-center">
+            <div class="flex-grow flex justify-start px-4 py-2 bg-blue-500 text-white rounded ml-3 mr-3">
+              <span className="mr-16">Start Time</span>
+              <span className="mr-16">End Time</span>
+              <span className="mr-16">Client</span>
+              <span className="mr-16">Procedure</span>
+              <span>Doctor</span>
+            </div>
+
+            <button
+              onClick={() => addNewDocumentToCabinet(cabinet.name)}
+              className="bg-blue-500 hover:bg-blue-700 text-white py-2 w-[148px] rounded mr-3 "
+            >
+              + Add
             </button>
           </div>
-          <div>Start Time End Time Client Procedure Doctor</div>
-          <div>
-            {cabinet.documents
-              .filter((doc) => doc.date?.split("T")[0] === selectedDate)
-              .map((doc) => (
-                <div key={doc.id}>
-                  <input
-                    id="startTime"
-                    type="time"
-                    readOnly={!doc.isEditable}
-                    value={doc.startTime}
-                    onChange={(e) =>
-                      handleInputChange(
-                        cabinet.name,
-                        doc.id,
-                        e.target.value,
-                        "startTime"
-                      )
-                    }
-                  ></input>
-                  <input
-                    id="endTime"
-                    type="time"
-                    readOnly={!doc.isEditable}
-                    value={doc.endTime}
-                    onChange={(e) =>
-                      handleInputChange(
-                        cabinet.name,
-                        doc.id,
-                        e.target.value,
-                        "endTime"
-                      )
-                    }
-                  ></input>
-                  <input
-                    value={doc.name}
-                    readOnly={!doc.isEditable}
-                    onChange={(e) =>
-                      handleInputChange(
-                        cabinet.name,
-                        doc.id,
-                        e.target.value,
-                        "name"
-                      )
-                    }
-                  />
-                  <input
-                    id="procedure"
-                    readOnly={!doc.isEditable}
-                    value={doc.procedure}
-                    onChange={(e) =>
-                      handleInputChange(
-                        cabinet.name,
-                        doc.id,
-                        e.target.value,
-                        "procedure"
-                      )
-                    }
-                  ></input>
-                  <input
-                    id="doctor"
-                    readOnly={!doc.isEditable}
-                    value={doc.doctor}
-                    onChange={(e) =>
-                      handleInputChange(
-                        cabinet.name,
-                        doc.id,
-                        e.target.value,
-                        "doctor"
-                      )
-                    }
-                  ></input>
-                  <button onClick={() => handleEdit(cabinet.name, doc.id)}>
+          {cabinet.documents
+            .filter((doc) => doc.date?.split("T")[0] === selectedDate)
+            .map((doc) => (
+              <div
+                key={doc.id}
+                className="flex justify-between items-center p-2"
+              >
+                <input
+                  id="startTime"
+                  type="time"
+                  readOnly={!doc.isEditable}
+                  value={doc.startTime}
+                  onChange={(e) =>
+                    handleInputChange(
+                      cabinet.name,
+                      doc.id,
+                      e.target.value,
+                      "startTime"
+                    )
+                  }
+                  className="m-1 p-1 rounded w-1/5"
+                ></input>
+                <input
+                  id="endTime"
+                  type="time"
+                  readOnly={!doc.isEditable}
+                  value={doc.endTime}
+                  onChange={(e) =>
+                    handleInputChange(
+                      cabinet.name,
+                      doc.id,
+                      e.target.value,
+                      "endTime"
+                    )
+                  }
+                  className="m-1 p-1 rounded w-1/5"
+                ></input>
+                <input
+                  value={doc.name}
+                  readOnly={!doc.isEditable}
+                  onChange={(e) =>
+                    handleInputChange(
+                      cabinet.name,
+                      doc.id,
+                      e.target.value,
+                      "name"
+                    )
+                  }
+                  className="m-1 p-1 rounded w-1/5"
+                />
+                <input
+                  id="procedure"
+                  readOnly={!doc.isEditable}
+                  value={doc.procedure}
+                  onChange={(e) =>
+                    handleInputChange(
+                      cabinet.name,
+                      doc.id,
+                      e.target.value,
+                      "procedure"
+                    )
+                  }
+                  className="m-1 p-1 rounded w-1/5"
+                ></input>
+                <input
+                  id="doctor"
+                  readOnly={!doc.isEditable}
+                  value={doc.doctor}
+                  onChange={(e) =>
+                    handleInputChange(
+                      cabinet.name,
+                      doc.id,
+                      e.target.value,
+                      "doctor"
+                    )
+                  }
+                  className="m-1 p-1  rounded w-1/5"
+                ></input>
+                <div className="flex">
+                  <button
+                    onClick={() => handleEdit(cabinet.name, doc.id)}
+                    className={`${
+                      doc.isEditable ? "bg-blue-500" : "bg-blue-500"
+                    } hover:bg-blue-700 text-white py-2 px-4 m-1 rounded`}
+                  >
                     {doc.isEditable ? "Save" : "Edit"}
                   </button>
+                  <button className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 m-1 rounded">
+                    Delete
+                  </button>
                 </div>
-              ))}
-          </div>
+              </div>
+            ))}
         </div>
       ))}
     </div>

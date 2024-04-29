@@ -7,12 +7,15 @@ import Auth from "./Auth";
 
 export default function Main() {
   return (
-    <></>
+    <main className="flex h-screen">
+      <SideBar />
+      <Schedule />
+    </main>
     // <main className="flex h-screen">
-    /* <SideBar /> */
+    //
     /* <UserDetails /> */
-    /* <Schedule /> */
+
     /* <Stock /> */
-    // </main>
+    //
   );
 }

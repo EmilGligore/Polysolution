@@ -5,8 +5,10 @@ import Auth from "./components/Auth.js";
 
 export default function App() {
   return (
-    /* <NavBar /> */
-    /* <Main /> */
-    <Auth />
+    <>
+    <NavBar /> 
+    <Main /> 
+    </>
+    // <Auth />
   );
 }
