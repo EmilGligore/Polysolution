@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { db } from "../config/firebase";
 import {
+  deleteDoc,
   collection,
   getDocs,
   doc,
@@ -11,6 +12,7 @@ import {
 export default function Schedule() {
   const [cabinets, setCabinets] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
+  const [hoveredDocId, setHoveredDocId] = useState(null);
 
   const cabinetCollections = useMemo(() => {
     return ["Cabinet 1", "Cabinet 2", "Cabinet 3"].map((cabinetName) => ({
@@ -167,30 +169,49 @@ export default function Schedule() {
     });
   };
 
+  const handleDelete = async (cabinetName, docId) => {
+    const docRef = doc(db, "cabinets", "cabinets", cabinetName, docId);
+    try {
+      await deleteDoc(docRef);
+      console.log("Document successfully deleted!");
+      setCabinets((cabinets) =>
+        cabinets.map((cabinet) => {
+          if (cabinet.name === cabinetName) {
+            return {
+              ...cabinet,
+              documents: cabinet.documents.filter((doc) => doc.id !== docId),
+            };
+          }
+          return cabinet;
+        })
+      );
+    } catch (error) {
+      console.error("Error deleting document: ", error);
+    }
+  };
+
   return (
-    <div className="bg-BackgroundAuth w-screen">
-      <input
-        type="date"
-        onChange={handleDateChange}
-        className="m-4 p-2"
-      ></input>
+    <div className="flex-grow">
+      <div className="flex items-center justify-center border-b border-gray-200 h-12">
+        <input type="date" onChange={handleDateChange} className=""></input>
+      </div>
       {cabinets.map((cabinet) => (
-        <div key={cabinet.name} className="mb-4 bg-white w-2/3 rounded ml-10">
-          <div className="flex items-center justify-between p-2">
-            <h2 className="text-lg text-center w-full">{cabinet.name}</h2>
+        <div key={cabinet.name} className=" bg-white rounded">
+          <div className="flex items-center justify-center h-12 border-b border-gray-200">
+            <h2 className="text-lg font-bold w-full pl-2">{cabinet.name}</h2>
           </div>
-          <div className="flex justify-between items-center">
-            <div class="flex-grow flex justify-start px-4 py-2 bg-blue-500 text-white rounded ml-3 mr-3">
-              <span className="mr-16">Start Time</span>
-              <span className="mr-16">End Time</span>
-              <span className="mr-16">Client</span>
-              <span className="mr-16">Procedure</span>
-              <span>Doctor</span>
+          <div className="flex justify-between items-center border-b border-gray-200 h-12">
+            <div className="flex-grow flex justify-start items-start">
+              <span className="ml-2 font-semibold w-1/5">Start Time</span>
+              <span className="w-1/5 font-semibold">End Time</span>
+              <span className="w-1/5 font-semibold">Client</span>
+              <span className="w-1/5 font-semibold">Procedure</span>
+              <span className="w-1/5 font-semibold">Doctor</span>
             </div>
 
             <button
               onClick={() => addNewDocumentToCabinet(cabinet.name)}
-              className="bg-blue-500 hover:bg-blue-700 text-white py-2 w-[148px] rounded mr-3 "
+              className="bg-blue-500 hover:bg-blue-700 w-[148px] rounded mr-3 my-2 py-1"
             >
               + Add
             </button>
@@ -200,89 +221,100 @@ export default function Schedule() {
             .map((doc) => (
               <div
                 key={doc.id}
-                className="flex justify-between items-center p-2"
+                className="flex justify-between items-center h-12 border-b border-gray-200"
+                onMouseEnter={() => setHoveredDocId(doc.id)}
+                onMouseLeave={() => setHoveredDocId(null)}
               >
-                <input
-                  id="startTime"
-                  type="time"
-                  readOnly={!doc.isEditable}
-                  value={doc.startTime}
-                  onChange={(e) =>
-                    handleInputChange(
-                      cabinet.name,
-                      doc.id,
-                      e.target.value,
-                      "startTime"
-                    )
-                  }
-                  className="m-1 p-1 rounded w-1/5"
-                ></input>
-                <input
-                  id="endTime"
-                  type="time"
-                  readOnly={!doc.isEditable}
-                  value={doc.endTime}
-                  onChange={(e) =>
-                    handleInputChange(
-                      cabinet.name,
-                      doc.id,
-                      e.target.value,
-                      "endTime"
-                    )
-                  }
-                  className="m-1 p-1 rounded w-1/5"
-                ></input>
-                <input
-                  value={doc.name}
-                  readOnly={!doc.isEditable}
-                  onChange={(e) =>
-                    handleInputChange(
-                      cabinet.name,
-                      doc.id,
-                      e.target.value,
-                      "name"
-                    )
-                  }
-                  className="m-1 p-1 rounded w-1/5"
-                />
-                <input
-                  id="procedure"
-                  readOnly={!doc.isEditable}
-                  value={doc.procedure}
-                  onChange={(e) =>
-                    handleInputChange(
-                      cabinet.name,
-                      doc.id,
-                      e.target.value,
-                      "procedure"
-                    )
-                  }
-                  className="m-1 p-1 rounded w-1/5"
-                ></input>
-                <input
-                  id="doctor"
-                  readOnly={!doc.isEditable}
-                  value={doc.doctor}
-                  onChange={(e) =>
-                    handleInputChange(
-                      cabinet.name,
-                      doc.id,
-                      e.target.value,
-                      "doctor"
-                    )
-                  }
-                  className="m-1 p-1  rounded w-1/5"
-                ></input>
-                <div className="flex">
+                <div className="w-[85%]">
+                  <input
+                    id="startTime"
+                    type="time"
+                    readOnly={!doc.isEditable}
+                    value={doc.startTime}
+                    onChange={(e) =>
+                      handleInputChange(
+                        cabinet.name,
+                        doc.id,
+                        e.target.value,
+                        "startTime"
+                      )
+                    }
+                    className="ml-2 w-13 "
+                  ></input>
+                  <input
+                    id="endTime"
+                    type="time"
+                    readOnly={!doc.isEditable}
+                    value={doc.endTime}
+                    onChange={(e) =>
+                      handleInputChange(
+                        cabinet.name,
+                        doc.id,
+                        e.target.value,
+                        "endTime"
+                      )
+                    }
+                    className="w-13 ml-[134px]"
+                  ></input>
+                  <input
+                    value={doc.name}
+                    readOnly={!doc.isEditable}
+                    onChange={(e) =>
+                      handleInputChange(
+                        cabinet.name,
+                        doc.id,
+                        e.target.value,
+                        "name"
+                      )
+                    }
+                    className="w-1/6 ml-[134px]"
+                  />
+                  <input
+                    id="procedure"
+                    readOnly={!doc.isEditable}
+                    value={doc.procedure}
+                    onChange={(e) =>
+                      handleInputChange(
+                        cabinet.name,
+                        doc.id,
+                        e.target.value,
+                        "procedure"
+                      )
+                    }
+                    className="w-1/6 ml-[39px]"
+                  ></input>
+                  <input
+                    id="doctor"
+                    readOnly={!doc.isEditable}
+                    value={doc.doctor}
+                    onChange={(e) =>
+                      handleInputChange(
+                        cabinet.name,
+                        doc.id,
+                        e.target.value,
+                        "doctor"
+                      )
+                    }
+                    className="w-[140px] ml-[38px]"
+                  ></input>
+                </div>
+                <div
+                  className={`flex ${hoveredDocId === doc.id ? "" : "hidden"}`}
+                >
                   <button
                     onClick={() => handleEdit(cabinet.name, doc.id)}
                     className={`${
                       doc.isEditable ? "bg-blue-500" : "bg-blue-500"
-                    } hover:bg-blue-700 text-white py-2 px-4 m-1 rounded`}
+                    } hover:bg-blue-700 py-1 px-4 m-1 rounded`}
+                    style={{ width: "70px" }}
                   >
                     {doc.isEditable ? "Save" : "Edit"}
                   </button>
-                  <button className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 m-1 rounded">
+                  <button
+                    onClick={() => handleDelete(cabinet.name, doc.id)}
+                    className="bg-blue-500 hover:bg-blue-700 py-1 m-1 mr-3 rounded"
+                    style={{ width: "70px" }}
+                  >
                     Delete
                   </button>
                 </div>

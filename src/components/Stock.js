@@ -12,6 +12,7 @@ import {
 export default function Stock() {
   const stockCollectionRef = collection(db, "stock");
   const [stock, setStock] = useState([]);
+  const [hoveredId, setHoveredId] = useState(null);
 
   useEffect(() => {
     const getStock = async () => {
@@ -21,6 +22,7 @@ export default function Stock() {
         id: doc.id,
         isEditable: false,
       }));
+      filteredData.sort((a, b) => a.quantity - b.quantity);
       setStock(filteredData);
     };
     getStock();
@@ -30,7 +32,7 @@ export default function Stock() {
     const newStock = {
       name: "",
       quantity: 0,
-      isEditable: true, // Ensure new stock is editable
+      isEditable: true,
     };
     setStock([...stock, newStock]);
   };
@@ -38,7 +40,6 @@ export default function Stock() {
   const handleInputChange = (id, field, value) => {
     const updatedStock = stock.map((item) => {
       if (item.id === id || item === id) {
-        // Ensure the new item without an ID can still be modified
         return { ...item, [field]: value };
       }
       return item;
@@ -65,15 +66,13 @@ export default function Stock() {
           quantity: item.quantity,
         });
         console.log("New document added with ID:", docRef.id);
-        // Update the item with the new ID
-        setStock(
-          stock.map((stockItem) => {
-            if (stockItem === item) {
-              return { ...stockItem, id: docRef.id, isEditable: false };
-            }
-            return stockItem;
-          })
-        );
+        setStock((prevStock) => [
+          ...prevStock.filter(
+            (stockItem) =>
+              stockItem.id !== undefined && stockItem.isEditable === false
+          ),
+          { ...item, id: docRef.id, isEditable: false },
+        ]);
       } catch (error) {
         console.error("Error adding new document: ", error);
       }
@@ -105,33 +104,85 @@ export default function Stock() {
   };
 
   return (
-    <>
-      <div>Item Quantity</div>
-      <button onClick={addNewStock} className="h-1/4">
-        +
-      </button>
-      {stock.map((item, index) => (
-        <div key={item.id || index} className="h-1/4">
-          <input
-            type="text"
-            value={item.name}
-            readOnly={!item.isEditable}
-            onChange={(e) => handleInputChange(item.id, "name", e.target.value)}
-          />
-          <input
-            type="number"
-            value={item.quantity}
-            readOnly={!item.isEditable}
-            onChange={(e) =>
-              handleInputChange(item.id, "quantity", e.target.value)
-            }
-          />
-          <button onClick={() => toggleEdit(item.id)}>
-            {item.isEditable ? "Save" : "Edit"}
-          </button>
-          <button onClick={() => deleteStockItem(item.id)}>Delete</button>
+    <div className="bg-white shadow-md flex-grow">
+      <div className="flex justify-between items-center h-12 border-b border-gray-200">
+        <div className="text-lg font-bold ml-2 h-12 flex justify-between items-center">
+          Stock
         </div>
-      ))}
-    </>
+      </div>
+      <table className="w-full">
+        <thead>
+          <tr className="border-b border-gray-200">
+            <th className="text-left p-2 h-12">Item</th>
+            <th className="text-left p-2 h-12">Quantity</th>
+            <th className="text-right p-2 h-12">
+              <button
+                onClick={addNewStock}
+                className="bg-blue-500 hover:bg-blue-700 rounded py-1 px-4 font-normal w-[148px]"
+              >
+                + Add
+              </button>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {stock.map((item, index) => (
+            <tr
+              key={item.id || index}
+              className="border-b h-12"
+              onMouseEnter={() => setHoveredId(item.id)}
+              onMouseLeave={() => setHoveredId(null)}
+            >
+              <td className="p-2">
+                <input
+                  type="text"
+                  value={item.name}
+                  readOnly={!item.isEditable}
+                  onChange={(e) =>
+                    handleInputChange(item.id, "name", e.target.value)
+                  }
+                  className="bg-transparent"
+                  placeholder="Item..."
+                />
+              </td>
+              <td className="p-2">
+                <input
+                  type="number"
+                  value={item.quantity}
+                  readOnly={!item.isEditable}
+                  onChange={(e) =>
+                    handleInputChange(item.id, "quantity", e.target.value)
+                  }
+                  className="bg-transparent w-full"
+                  placeholder="Quantity..."
+                />
+              </td>
+              <td className="flex justify-end items-center">
+                <div
+                  className={`flex ${hoveredId === item.id ? "" : "hidden"}`}
+                >
+                  <button
+                    onClick={() => toggleEdit(item.id)}
+                    className={`${
+                      item.isEditable ? "bg-blue-500" : "bg-blue-500"
+                    } hover:bg-blue-700 py-1 px-4 m-1 rounded`}
+                    style={{ width: "70px" }}
+                  >
+                    {item.isEditable ? "Save" : "Edit"}
+                  </button>
+                  <button
+                    onClick={() => deleteStockItem(item.id)}
+                    className="bg-blue-500 hover:bg-blue-700 py-1 m-1 mr-2 rounded"
+                    style={{ width: "70px" }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

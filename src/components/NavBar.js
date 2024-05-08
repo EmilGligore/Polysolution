@@ -1,4 +1,4 @@
-import Logo from "../assets/Logo.png";
+import Logo from "../assets/LogoW.png";
 import HamburgerLogo from "../assets/HamburgerIcon.jpeg";
 import "../index.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -7,7 +7,7 @@ import { faUser } from "@fortawesome/free-solid-svg-icons";
 
 export default function NavBar() {
   return (
-    <header className="flex items-center ">
+    <header className="flex items-center bg-gradient-to-r from-blue-800 via-blue-600 to-blue-500">
       <div className="flex justify-start items-center w-1/5 mr-auto ml-3 h-full">
         <a href="#">
           <img
@@ -23,12 +23,6 @@ export default function NavBar() {
         </div>
       </div>
       <div className="flex items-center justify-end mr-5">
-        <a
-          href="#"
-          className="py-2 px-2 border-b-2 border-transparent hover:border-white"
-        >
-          <FontAwesomeIcon icon={faBell} style={{ color: "#ffffff" }} />
-        </a>
         <a
           className="ml-5 border-b-2 py-2 px-2 border-transparent hover:border-white"
           href="#"
