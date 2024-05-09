@@ -15,23 +15,24 @@ export default function Beds() {
   useEffect(() => {
     const fetchBeds = async () => {
       const querySnapshot = await getDocs(collection(db, "beds"));
-      const bedsArray = querySnapshot.docs.map(doc => ({
-        id: doc.id, 
-        patient: doc.data().pacient, 
-        occupied: doc.data().occupied,
-        number: doc.data().number
-      })).sort((a, b) => a.number - b.number);
+      const bedsArray = querySnapshot.docs
+        .map((doc) => ({
+          id: doc.id,
+          patient: doc.data().pacient,
+          occupied: doc.data().occupied,
+          number: doc.data().number,
+        }))
+        .sort((a, b) => a.number - b.number);
       setBeds(bedsArray);
     };
-    
 
     fetchBeds();
   }, []);
 
   const handlePatientChange = async (bedId, newPatient) => {
     const bedDocRef = doc(db, "beds", bedId);
-    await updateDoc(bedDocRef, { pacient: newPatient });  // Note: 'pacient' must match your Firestore field
-  
+    await updateDoc(bedDocRef, { pacient: newPatient });
+
     const updatedBeds = beds.map((bed) =>
       bed.id === bedId ? { ...bed, patient: newPatient } : bed
     );
@@ -42,8 +43,7 @@ export default function Beds() {
     const bedDocRef = doc(db, "beds", bedId);
     const occupiedValue = newOccupied === "Yes";
     await updateDoc(bedDocRef, { occupied: occupiedValue });
-  
-    // Update local state
+
     const updatedBeds = beds.map((bed) =>
       bed.id === bedId ? { ...bed, occupied: occupiedValue } : bed
     );
@@ -52,7 +52,9 @@ export default function Beds() {
 
   return (
     <div className="flex-grow">
-      <h1 className="flex font-bold border-b border-gray-200 h-12 justify-start items-center pl-1.5 ">Beds Availability</h1>
+      <h1 className="flex font-bold border-b border-gray-200 h-12 justify-start items-center pl-1.5 ">
+        Beds Availability
+      </h1>
       <table className="h-12 border-b border-gray-200 w-full">
         <thead className="h-12 border-b border-gray-200">
           <tr className="h-12 border-b border-gray-200">
