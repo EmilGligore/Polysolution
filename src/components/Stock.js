@@ -104,7 +104,7 @@ export default function Stock() {
   };
 
   return (
-    <div className="bg-white shadow-md flex-grow">
+    <div className="bg-white flex-grow">
       <div className="flex justify-between items-center h-12 border-b border-gray-200">
         <div className="text-lg font-bold ml-2 h-12 flex justify-between items-center">
           Stock
