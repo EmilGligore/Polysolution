@@ -1,7 +1,12 @@
 import "../index.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHospitalUser } from "@fortawesome/free-solid-svg-icons";
-import { faUser } from "@fortawesome/free-solid-svg-icons";
+import {
+  faHospitalUser,
+  faCalendarDays,
+  faUser,
+  faBoxesStacked,
+  faBed,
+} from "@fortawesome/free-solid-svg-icons";
 
 export default function SideBar() {
   return (
@@ -9,7 +14,22 @@ export default function SideBar() {
       <ul>
         <FontAwesomeIcon
           icon={faHospitalUser}
-          style={{ color: "#c6d0e1" }}
+          style={{ color: "#ffffff" }}
+          className="border-r-2 border-transparent pl-5 pr-4 mt-1 py-2 hover:border-white"
+        />
+        <FontAwesomeIcon
+          icon={faCalendarDays}
+          style={{ color: "#ffffff" }}
+          className="border-r-2 border-transparent pl-5 pr-4 mt-1 py-2 hover:border-white"
+        />
+        <FontAwesomeIcon
+          icon={faBoxesStacked}
+          style={{ color: "#ffffff" }}
+          className="border-r-2 border-transparent pl-5 pr-4 mt-1 py-2 hover:border-white"
+        />
+        <FontAwesomeIcon
+          icon={faBed}
+          style={{ color: "#ffffff" }}
           className="border-r-2 border-transparent pl-5 pr-4 mt-1 py-2 hover:border-white"
         />
       </ul>
