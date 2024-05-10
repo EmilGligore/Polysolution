@@ -118,7 +118,7 @@ export default function Stock() {
             <th className="text-right p-2 h-12">
               <button
                 onClick={addNewStock}
-                className="bg-blue-500 hover:bg-blue-700 rounded py-1 px-4 font-normal w-[148px]"
+                className="bg-blue-500 hover:bg-blue-700 rounded py-1 px-4 font-normal w-[148px] text-white"
               >
                 + Add
               </button>
@@ -165,14 +165,14 @@ export default function Stock() {
                     onClick={() => toggleEdit(item.id)}
                     className={`${
                       item.isEditable ? "bg-blue-500" : "bg-blue-500"
-                    } hover:bg-blue-700 py-1 px-4 m-1 rounded`}
+                    } hover:bg-blue-700 py-1 px-4 m-1 rounded text-white`}
                     style={{ width: "70px" }}
                   >
                     {item.isEditable ? "Save" : "Edit"}
                   </button>
                   <button
                     onClick={() => deleteStockItem(item.id)}
-                    className="bg-blue-500 hover:bg-blue-700 py-1 m-1 mr-2 rounded"
+                    className="bg-blue-500 hover:bg-blue-700 py-1 m-1 mr-2 rounded text-white"
                     style={{ width: "70px" }}
                   >
                     Delete

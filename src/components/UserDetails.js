@@ -163,135 +163,161 @@ export default function UserDetails() {
   };
 
   return (
-    <div className="mt-1">
-      <h1 className="ml-10">Client Information</h1>
-      <b>Select Existing Client</b>
-      <div>
-        <select
-          value={selectedOptionIndex}
-          onChange={(e) => changeOption(parseInt(e.target.value))}
+    <div className="">
+      <h1 className="ml-1 font-bold border-b border-gray-200 h-12 flex items-center justify-start">
+        Client Information
+      </h1>
+      <div className="flex h-12 border-b border-gray-200 items-center justify-normal">
+        <b className="ml-1">Select Existing Client</b>
+        <div className="mr-auto">
+          <select
+            value={selectedOptionIndex}
+            onChange={(e) => changeOption(parseInt(e.target.value))}
+          >
+            <option value="0">Select</option>
+            {clientsList.map((client, index) => (
+              <option key={client.id} value={index + 1}>
+                {client.firstName} {client.surname}
+              </option>
+            ))}
+          </select>
+        </div>
+        <button
+          onClick={() => {
+            if (selectedOptionIndex === 0) {
+              handleAddNewClient();
+            } else {
+              handleEdit();
+            }
+          }}
+          className="bg-blue-500 hover:bg-blue-700 py-1 px-4 m-1 rounded text-white"
+          style={{ width: "70px" }}
         >
-          <option value="0">Select</option>
-          {clientsList.map((client, index) => (
-            <option key={client.id} value={index + 1}>
-              {client.firstName} {client.surname}
-            </option>
-          ))}
-        </select>
-      </div>
-      <button
-        onClick={() => {
-          if (selectedOptionIndex === 0) {
-            handleAddNewClient();
-          } else {
-            handleEdit();
-          }
-        }}
-      >
-        {selectedOptionIndex > 0 && !showNewInfo ? "Edit" : "Save"} Client
-      </button>
+          {selectedOptionIndex > 0 && !showNewInfo ? "Edit" : "Save"}
+        </button>
 
-      <b>Add New Client</b>
-      <button
-        onClick={() => {
-          setIsAddingClient(true);
-          changeOption(0);
-        }}
-        className="h-5"
-      >
-        +
-      </button>
-      <div className="flex flex-col">
-        <span>First Name</span>
-        <input
-          readOnly={!showNewInfo}
-          type="text"
-          className="border-black border border-solid"
-          name="firstName"
-          value={formData.firstName}
-          onChange={handleInputChange}
-        ></input>
-        <span>Surname</span>
-        <input
-          readOnly={!showNewInfo}
-          type="text"
-          className="border-black border border-solid"
-          name="surname"
-          value={formData.surname}
-          onChange={handleInputChange}
-        ></input>
-        <span>Social Security Number</span>
-        <input
-          readOnly={!showNewInfo}
-          className="border-black border border-solid"
-          name="ssn"
-          value={formData.ssn}
-          onChange={handleInputChange}
-        ></input>
-        <span>Phone</span>
-        <input
-          readOnly={!showNewInfo}
-          type="tel"
-          className="border-black border border-solid"
-          name="phone"
-          value={formData.phone}
-          onChange={handleInputChange}
-        ></input>
-        <span>Email</span>
-        <input
-          readOnly={!showNewInfo}
-          type="email"
-          className="border-black border border-solid"
-          name="email"
-          value={formData.email}
-          onChange={handleInputChange}
-        ></input>
-        <span>Birthdate</span>
-        <input
-          readOnly={!showNewInfo}
-          type="date"
-          className="border-black border border-solid"
-          name="birthdate"
-          value={formData.birthdate}
-          onChange={handleInputChange}
-        ></input>
-        <span>Gender</span>
-        <select
-          disabled={!showNewInfo}
-          name="gender"
-          value={formData.gender}
-          onChange={handleInputChange}
+        <button
+          onClick={() => {
+            setIsAddingClient(true);
+            changeOption(0);
+          }}
+          className="bg-blue-500 hover:bg-blue-700 px-3 py-1 m-1 rounded text-white"
+          style={{ width: "70px" }}
         >
-          <option>{""}</option>
-          <option>Male</option>
-          <option>Female</option>
-        </select>
-        <span>Existing Health Problems</span>
-        <input
-          readOnly={!showNewInfo}
-          type="text"
-          className="border-black border border-solid"
-          name="healthproblems"
-          value={formData.healthproblems}
-          onChange={handleInputChange}
-        ></input>
-        <span>Emergency Contact Phone</span>
-        <input
-          readOnly={!showNewInfo}
-          type="tel"
-          className="border-black border border-solid"
-          name="emerphone"
-          value={formData.emerphone}
-          onChange={handleInputChange}
-        ></input>
-        <span>Emergency Contact Name</span>
-        <input
-          readOnly={!showNewInfo}
-          className="border-black border border-solid"
-          name="emername"
-          value={formData.emername}
-          onChange={handleInputChange}
-        ></input>
+          + Add
+        </button>
+      </div>
+      <div className="flex flex-col">
+        <div className="border-b border-gray-200 h-12 flex items-center justify-start ml-1">
+          <span>First Name</span>
+          <input
+            readOnly={!showNewInfo}
+            type="text"
+            className="border-black border border-solid"
+            name="firstName"
+            value={formData.firstName}
+            onChange={handleInputChange}
+          ></input>
+        </div>
+        <div className="border-b border-gray-200 h-12 flex items-center justify-start ml-1">
+          <span>Surname</span>
+          <input
+            readOnly={!showNewInfo}
+            type="text"
+            className="border-black border border-solid"
+            name="surname"
+            value={formData.surname}
+            onChange={handleInputChange}
+          ></input>
+        </div>
+        <div className="border-b border-gray-200 h-12 flex items-center justify-start ml-1">
+          <span>Social Security Number</span>
+          <input
+            readOnly={!showNewInfo}
+            className="border-black border border-solid"
+            name="ssn"
+            value={formData.ssn}
+            onChange={handleInputChange}
+          ></input>
+        </div>
+        <div className="border-b border-gray-200 h-12 flex items-center justify-start ml-1">
+          <span>Phone</span>
+          <input
+            readOnly={!showNewInfo}
+            type="tel"
+            className="border-black border border-solid"
+            name="phone"
+            value={formData.phone}
+            onChange={handleInputChange}
+          ></input>
+        </div>
+        <div className="border-b border-gray-200 h-12 flex items-center justify-start ml-1">
+          <span>Email</span>
+          <input
+            readOnly={!showNewInfo}
+            type="email"
+            className="border-black border border-solid"
+            name="email"
+            value={formData.email}
+            onChange={handleInputChange}
+          ></input>
+        </div>
+        <div className="border-b border-gray-200 h-12 flex items-center justify-start ml-1">
+          <span>Birthdate</span>
+          <input
+            readOnly={!showNewInfo}
+            type="date"
+            className="border-black border border-solid"
+            name="birthdate"
+            value={formData.birthdate}
+            onChange={handleInputChange}
+          ></input>
+        </div>
+        <div className="border-b border-gray-200 h-12 flex items-center justify-start ml-1">
+          <span>Gender</span>
+          <select
+            disabled={!showNewInfo}
+            name="gender"
+            value={formData.gender}
+            onChange={handleInputChange}
+          >
+            <option>{""}</option>
+            <option>Male</option>
+            <option>Female</option>
+          </select>
+        </div>
+        <div className="border-b border-gray-200 h-12 flex items-center justify-start ml-1">
+          <span>Existing Health Problems</span>
+          <input
+            readOnly={!showNewInfo}
+            type="text"
+            className="border-black border border-solid"
+            name="healthproblems"
+            value={formData.healthproblems}
+            onChange={handleInputChange}
+          ></input>
+        </div>
+        <div className="border-b border-gray-200 h-12 flex items-center justify-start ml-1">
+          <span>Emergency Contact Phone</span>
+          <input
+            readOnly={!showNewInfo}
+            type="tel"
+            className="border-black border border-solid"
+            name="emerphone"
+            value={formData.emerphone}
+            onChange={handleInputChange}
+          ></input>
+        </div>
+        <div className="border-b border-gray-200 h-12 flex items-center justify-start ml-1">
+          <span>Emergency Contact Name</span>
+          <input
+            readOnly={!showNewInfo}
+            className="border-black border border-solid"
+            name="emername"
+            value={formData.emername}
+            onChange={handleInputChange}
+          ></input>
+        </div>
       </div>
       <input
         type="checkbox"

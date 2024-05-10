@@ -11,7 +11,14 @@ import {
 
 export default function Schedule() {
   const [cabinets, setCabinets] = useState([]);
-  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const today = new Date();
+    const day = String(today.getDate()).padStart(2, '0');
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const year = today.getFullYear();
+    return `${year}-${month}-${day}`;
+  });
+  
   const [hoveredDocId, setHoveredDocId] = useState(null);
 
   const cabinetCollections = useMemo(() => {
@@ -193,7 +200,8 @@ export default function Schedule() {
   return (
     <div className="flex-grow">
       <div className="flex items-center justify-center border-b border-gray-200 h-12">
-        <input type="date" onChange={handleDateChange} className=""></input>
+      <input type="date" value={selectedDate} onChange={handleDateChange} className=""></input>
+
       </div>
       {cabinets.map((cabinet) => (
         <div key={cabinet.name} className=" bg-white rounded">
@@ -211,7 +219,7 @@ export default function Schedule() {
 
             <button
               onClick={() => addNewDocumentToCabinet(cabinet.name)}
-              className="bg-blue-500 hover:bg-blue-700 w-[148px] rounded mr-3 my-2 py-1"
+              className="bg-blue-500 hover:bg-blue-700 w-[148px] rounded mr-3 my-2 py-1 text-white"
             >
               + Add
             </button>
@@ -305,14 +313,14 @@ export default function Schedule() {
                     onClick={() => handleEdit(cabinet.name, doc.id)}
                     className={`${
                       doc.isEditable ? "bg-blue-500" : "bg-blue-500"
-                    } hover:bg-blue-700 py-1 px-4 m-1 rounded`}
+                    } hover:bg-blue-700 py-1 px-4 m-1 rounded text-white`}
                     style={{ width: "70px" }}
                   >
                     {doc.isEditable ? "Save" : "Edit"}
                   </button>
                   <button
                     onClick={() => handleDelete(cabinet.name, doc.id)}
-                    className="bg-blue-500 hover:bg-blue-700 py-1 m-1 mr-3 rounded"
+                    className="bg-blue-500 hover:bg-blue-700 py-1 m-1 mr-3 rounded text-white"
                     style={{ width: "70px" }}
                   >
                     Delete
