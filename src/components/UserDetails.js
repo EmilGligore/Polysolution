@@ -1,6 +1,6 @@
 import { faSave } from "@fortawesome/free-solid-svg-icons";
 import "../index.css";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { db } from "../config/firebase";
 import {
   getDocs,
@@ -15,8 +15,7 @@ export default function UserDetails() {
   const [clientsList, setClientsList] = React.useState([]);
   const [isAddingClient, setIsAddingClient] = useState(false);
 
-  const clientsCollectionRef = collection(db, "clients");
-
+  const clientsCollectionRef = useMemo(() => collection(db, "clients"), []);
   function timestampToDate(input) {
     if (typeof input === "string") {
       return input;
@@ -163,18 +162,17 @@ export default function UserDetails() {
   };
 
   return (
-    <div className="">
+    <div>
       <h1 className="ml-1 font-bold border-b border-gray-200 h-12 flex items-center justify-start">
         Client Information
       </h1>
       <div className="flex h-12 border-b border-gray-200 items-center justify-normal">
-        <b className="ml-1">Select Existing Client</b>
-        <div className="mr-auto">
+        <div className="mx-auto">
           <select
             value={selectedOptionIndex}
             onChange={(e) => changeOption(parseInt(e.target.value))}
           >
-            <option value="0">Select</option>
+            <option value="0">Select Existing Client</option>
             {clientsList.map((client, index) => (
               <option key={client.id} value={index + 1}>
                 {client.firstName} {client.surname}
@@ -207,13 +205,14 @@ export default function UserDetails() {
           + Add
         </button>
       </div>
-      <div className="flex flex-col">
+      {/* Nu sterg capoate nu merge ce e nou */}
+      {/* <div className="flex flex-col">
         <div className="border-b border-gray-200 h-12 flex items-center justify-start ml-1">
           <span>First Name</span>
           <input
             readOnly={!showNewInfo}
             type="text"
-            className="border-black border border-solid"
+            className="border border-solid rounded"
             name="firstName"
             value={formData.firstName}
             onChange={handleInputChange}
@@ -224,7 +223,7 @@ export default function UserDetails() {
           <input
             readOnly={!showNewInfo}
             type="text"
-            className="border-black border border-solid"
+            className="border border-solid rounded"
             name="surname"
             value={formData.surname}
             onChange={handleInputChange}
@@ -234,7 +233,7 @@ export default function UserDetails() {
           <span>Social Security Number</span>
           <input
             readOnly={!showNewInfo}
-            className="border-black border border-solid"
+            className="border border-solid rounded"
             name="ssn"
             value={formData.ssn}
             onChange={handleInputChange}
@@ -245,7 +244,7 @@ export default function UserDetails() {
           <input
             readOnly={!showNewInfo}
             type="tel"
-            className="border-black border border-solid"
+            className="border border-solid rounded"
             name="phone"
             value={formData.phone}
             onChange={handleInputChange}
@@ -256,7 +255,7 @@ export default function UserDetails() {
           <input
             readOnly={!showNewInfo}
             type="email"
-            className="border-black border border-solid"
+            className="border border-solid rounded"
             name="email"
             value={formData.email}
             onChange={handleInputChange}
@@ -267,7 +266,7 @@ export default function UserDetails() {
           <input
             readOnly={!showNewInfo}
             type="date"
-            className="border-black border border-solid"
+            className="border border-solid rounded"
             name="birthdate"
             value={formData.birthdate}
             onChange={handleInputChange}
@@ -280,6 +279,7 @@ export default function UserDetails() {
             name="gender"
             value={formData.gender}
             onChange={handleInputChange}
+            className="border border-solid rounded"
           >
             <option>{""}</option>
             <option>Male</option>
@@ -291,7 +291,7 @@ export default function UserDetails() {
           <input
             readOnly={!showNewInfo}
             type="text"
-            className="border-black border border-solid"
+            className="border border-solid rounded"
             name="healthproblems"
             value={formData.healthproblems}
             onChange={handleInputChange}
@@ -302,7 +302,7 @@ export default function UserDetails() {
           <input
             readOnly={!showNewInfo}
             type="tel"
-            className="border-black border border-solid"
+            className="border border-solid rounded"
             name="emerphone"
             value={formData.emerphone}
             onChange={handleInputChange}
@@ -312,21 +312,139 @@ export default function UserDetails() {
           <span>Emergency Contact Name</span>
           <input
             readOnly={!showNewInfo}
-            className="border-black border border-solid"
+            className="border border-solid rounded"
             name="emername"
             value={formData.emername}
             onChange={handleInputChange}
           ></input>
         </div>
+      </div> */}
+      <div className="flex flex-col">
+        <div className="flex items-center space-x-4 border-b border-gray-200 h-12 justify-start ml-1">
+          <span className="w-1/3 text-left">First Name</span>
+          <input
+            type="text"
+            name="firstName"
+            readOnly={!showNewInfo}
+            value={formData.firstName}
+            onChange={handleInputChange}
+            className="flex-grow border rounded"
+          />
+        </div>
+        <div className="flex items-center space-x-4 border-b border-gray-200 h-12 justify-start ml-1">
+          <span className="w-1/3 text-left">Surname</span>
+          <input
+            type="text"
+            name="surname"
+            readOnly={!showNewInfo}
+            value={formData.surname}
+            onChange={handleInputChange}
+            className="flex-grow border rounded"
+          />
+        </div>
+        <div className="flex items-center space-x-4 border-b border-gray-200 h-12 justify-start ml-1">
+          <span className="w-1/3 text-left">Social Security Number</span>
+          <input
+            type="text"
+            name="ssn"
+            readOnly={!showNewInfo}
+            value={formData.ssn}
+            onChange={handleInputChange}
+            className="flex-grow border rounded"
+          />
+        </div>
+        <div className="flex items-center space-x-4 border-b border-gray-200 h-12 justify-start ml-1">
+          <span className="w-1/3 text-left">Phone</span>
+          <input
+            type="tel"
+            name="phone"
+            readOnly={!showNewInfo}
+            value={formData.phone}
+            onChange={handleInputChange}
+            className="flex-grow border rounded"
+          />
+        </div>
+        <div className="flex items-center space-x-4 border-b border-gray-200 h-12 justify-start ml-1">
+          <span className="w-1/3 text-left">Email</span>
+          <input
+            type="email"
+            name="email"
+            readOnly={!showNewInfo}
+            value={formData.email}
+            onChange={handleInputChange}
+            className="flex-grow border rounded"
+          />
+        </div>
+        <div className="flex items-center space-x-4 border-b border-gray-200 h-12 justify-start ml-1">
+          <span className="w-1/3 text-left">Birthdate</span>
+          <input
+            type="date"
+            name="birthdate"
+            readOnly={!showNewInfo}
+            value={formData.birthdate}
+            onChange={handleInputChange}
+            className="flex-grow border rounded"
+          />
+        </div>
+        <div className="flex items-center space-x-4 border-b border-gray-200 h-12 justify-start ml-1">
+          <span className="w-1/3 text-left">Gender</span>
+          <select
+            name="gender"
+            disabled={!showNewInfo}
+            value={formData.gender}
+            onChange={handleInputChange}
+            className="flex-grow border rounded"
+          >
+            <option value=""></option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+        <div className="flex items-center space-x-4 border-b border-gray-200 h-12 justify-start ml-1">
+          <span className="w-1/3 text-left">Existing Health Problems</span>
+          <input
+            type="text"
+            name="healthproblems"
+            readOnly={!showNewInfo}
+            value={formData.healthproblems}
+            onChange={handleInputChange}
+            className="flex-grow border rounded"
+          />
+        </div>
+        <div className="flex items-center space-x-4 border-b border-gray-200 h-12 justify-start ml-1">
+          <span className="w-1/3 text-left">Emergency Contact Phone</span>
+          <input
+            type="tel"
+            name="emerphone"
+            readOnly={!showNewInfo}
+            value={formData.emerphone}
+            onChange={handleInputChange}
+            className="flex-grow border rounded"
+          />
+        </div>
+        <div className="flex items-center space-x-4 border-b border-gray-200 h-12 justify-start ml-1">
+          <span className="w-1/3 text-left">Emergency Contact Name</span>
+          <input
+            type="text"
+            name="emername"
+            readOnly={!showNewInfo}
+            value={formData.emername}
+            onChange={handleInputChange}
+            className="flex-grow border rounded"
+          />
+        </div>
       </div>
-      <input
-        type="checkbox"
-        name="gdpr"
-        checked={formData.gdpr}
-        onChange={handleInputChange}
-        readOnly={!showNewInfo}
-      ></input>
-      <span>I accept EU GDPR</span>
+      <div className="border-b border-gray-200 h-12 flex items-center justify-start ml-1">
+        <span>I accept EU GDPR</span>
+        <input
+          type="checkbox"
+          name="gdpr"
+          checked={formData.gdpr}
+          onChange={handleInputChange}
+          readOnly={!showNewInfo}
+          className="border border-solid rounded"
+        ></input>
+      </div>
     </div>
   );
 }

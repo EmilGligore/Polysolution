@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { db } from "../config/firebase";
 import {
   getDocs,
@@ -10,7 +10,7 @@ import {
 } from "firebase/firestore";
 
 export default function Stock() {
-  const stockCollectionRef = collection(db, "stock");
+  const stockCollectionRef = useMemo(() => collection(db, "stock"), []);
   const [stock, setStock] = useState([]);
   const [hoveredId, setHoveredId] = useState(null);
 

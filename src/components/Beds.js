@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { db } from "../config/firebase";
 import {
   deleteDoc,
@@ -12,9 +12,11 @@ import {
 export default function Beds() {
   const [beds, setBeds] = useState([]);
 
+  const bedsCollection = useMemo(() => collection(db, "beds"), []);
+
   useEffect(() => {
     const fetchBeds = async () => {
-      const querySnapshot = await getDocs(collection(db, "beds"));
+      const querySnapshot = await getDocs(bedsCollection);
       const bedsArray = querySnapshot.docs
         .map((doc) => ({
           id: doc.id,
@@ -27,7 +29,7 @@ export default function Beds() {
     };
 
     fetchBeds();
-  }, []);
+  }, [bedsCollection]);
 
   const handlePatientChange = async (bedId, newPatient) => {
     const bedDocRef = doc(db, "beds", bedId);
@@ -71,6 +73,7 @@ export default function Beds() {
                 <input
                   value={bed.patient}
                   onChange={(e) => handlePatientChange(bed.id, e.target.value)}
+                  placeholder="Pacients Name..."
                 />
               </td>
               <td>
