@@ -1,13 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { db } from "../config/firebase";
-import {
-  deleteDoc,
-  collection,
-  getDocs,
-  doc,
-  updateDoc,
-  setDoc,
-} from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
 
 export default function Beds() {
   const [beds, setBeds] = useState([]);

@@ -4,12 +4,14 @@ import { auth } from "../config/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye } from "@fortawesome/free-solid-svg-icons";
+import RecoverPassword from "./RecoverPassword";
 
 export default function Auth({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [recoverPasswordMode, setRecoverPasswordMode] = useState(false);
 
   const logIn = async () => {
     try {
@@ -21,6 +23,10 @@ export default function Auth({ onLogin }) {
       setError(true);
     }
   };
+
+  if (recoverPasswordMode) {
+    return <RecoverPassword />;
+  }
 
   return (
     <div className="flex flex-col items-center justify-center bg-BackgroundAuth w-screen h-screen">
@@ -87,7 +93,11 @@ export default function Auth({ onLogin }) {
           </button>
         </div>
         <div className="text-right my-3 border-b-2 pb-3">
-          <a href="#" className="text-blue-500 text-sm hover:text-blue-800">
+          <a
+            href="#"
+            className="text-blue-500 text-sm hover:text-blue-800"
+            onClick={() => setRecoverPasswordMode(true)}
+          >
             Forgot password?
           </a>
         </div>
