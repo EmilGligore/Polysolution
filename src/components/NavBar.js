@@ -6,7 +6,7 @@ import { faBars, faUser } from "@fortawesome/free-solid-svg-icons";
 
 export default function NavBar({ onLogout }) {
   return (
-    <header className="flex items-center bg-gradient-to-r from-blue-800 via-blue-600 to-blue-500">
+    <header className="flex items-center bg-gradient-to-r from-blue-800 via-blue-600 to-blue-500 shadow-[inset_0_-2px_4px_rgba(0,0,0,0.6)]">
       <div className="flex justify-start items-center w-1/5 mr-auto ml-1 h-full">
         <a href="#" className="">
           <FontAwesomeIcon

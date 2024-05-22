@@ -1,57 +1,21 @@
+import { faSave } from "@fortawesome/free-solid-svg-icons";
 import "../index.css";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { db } from "../config/firebase";
 import {
   getDocs,
+  getDoc,
   collection,
   doc,
   updateDoc,
   addDoc,
 } from "firebase/firestore";
 
-const initialFormData = {
-  firstName: "",
-  surname: "",
-  ssn: "",
-  phone: "",
-  email: "",
-  birthdate: "",
-  gender: "",
-  healthproblems: "",
-  emerphone: "",
-  emername: "",
-  gdpr: false,
-};
-
 export default function UserDetails() {
-  const [clientsList, setClientsList] = useState([]);
+  const [clientsList, setClientsList] = React.useState([]);
   const [isAddingClient, setIsAddingClient] = useState(false);
-  const [showNewInfo, setShowNewInfo] = useState(false);
-  const [selectedOptionIndex, setSelectedOptionIndex] = useState(0);
-  const [formData, setFormData] = useState(initialFormData);
 
   const clientsCollectionRef = useMemo(() => collection(db, "clients"), []);
-
-  useEffect(() => {
-    const getClientsList = async () => {
-      try {
-        const data = await getDocs(clientsCollectionRef);
-        const filteredData = data.docs.map((doc) => ({
-          ...doc.data(),
-          id: doc.id,
-          birthdate: doc.data().birthdate
-            ? timestampToDate(doc.data().birthdate)
-            : "",
-        }));
-        setClientsList(filteredData);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    getClientsList();
-  }, [clientsCollectionRef]);
-
   function timestampToDate(input) {
     if (typeof input === "string") {
       return input;
@@ -72,6 +36,30 @@ export default function UserDetails() {
     }
   }
 
+  React.useEffect(() => {
+    const getClientsList = async () => {
+      try {
+        const data = await getDocs(clientsCollectionRef);
+        const filteredData = data.docs.map((doc) => {
+          return {
+            ...doc.data(),
+            id: doc.id,
+            birthdate: doc.data().birthdate
+              ? timestampToDate(doc.data().birthdate)
+              : "",
+          };
+        });
+        setClientsList(filteredData);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    getClientsList();
+  }, [clientsList]);
+
+  const [showNewInfo, setShowNewInfo] = useState(false);
+  const [selectedOptionIndex, setSelectedOptionIndex] = useState(0);
+
   const handleAddNewClient = async () => {
     const isFormComplete = Object.values(formData).every(
       (value) => value !== "" || typeof value === "boolean"
@@ -89,15 +77,6 @@ export default function UserDetails() {
       alert("Client added successfully!");
       resetFormData();
       setShowNewInfo(false);
-      const data = await getDocs(clientsCollectionRef);
-      const filteredData = data.docs.map((doc) => ({
-        ...doc.data(),
-        id: doc.id,
-        birthdate: doc.data().birthdate
-          ? timestampToDate(doc.data().birthdate)
-          : "",
-      }));
-      setClientsList(filteredData);
     } catch (err) {
       console.error("Error adding document: ", err);
       alert("Failed to add new client.");
@@ -108,6 +87,7 @@ export default function UserDetails() {
   const changeOption = (index) => {
     setSelectedOptionIndex(index);
     setIsAddingClient(false);
+    setSelectedOptionIndex(index);
     if (index > 0) {
       const selectedClient = clientsList[index - 1];
       setFormData({
@@ -123,19 +103,41 @@ export default function UserDetails() {
         emername: selectedClient.emername || "",
         gdpr: selectedClient.gdpr || false,
       });
-      setShowNewInfo(false);
+      if (index >= 0) {
+        setShowNewInfo(false);
+      }
     } else {
-      resetFormData();
+      setFormData(initialFormData);
       setShowNewInfo(true);
     }
+  };
+
+  const initialFormData = {
+    firstName: "",
+    surname: "",
+    ssn: "",
+    phone: "",
+    email: "",
+    birthdate: "",
+    gender: "",
+    healthproblems: "",
+    emerphone: "",
+    emername: "",
+    gdpr: false,
   };
 
   const resetFormData = () => {
     setFormData(initialFormData);
   };
 
+  const [formData, setFormData] = useState(initialFormData);
+
+  function addNewClient() {
+    setShowNewInfo((prevShowNewInfo) => !prevShowNewInfo);
+  }
+
   const handleEdit = async () => {
-    if (selectedOptionIndex > 0) {
+    if (showNewInfo) {
       const clientDocRef = doc(
         db,
         "clients",
@@ -143,7 +145,6 @@ export default function UserDetails() {
       );
       try {
         await updateDoc(clientDocRef, formData);
-        alert("Client updated successfully!");
       } catch (err) {
         console.error("Error updating document: ", err);
         alert("Failed to update client information.");
@@ -204,6 +205,120 @@ export default function UserDetails() {
           + Add
         </button>
       </div>
+      {/* Nu sterg capoate nu merge ce e nou */}
+      {/* <div className="flex flex-col">
+        <div className="border-b border-gray-200 h-12 flex items-center justify-start ml-1">
+          <span>First Name</span>
+          <input
+            readOnly={!showNewInfo}
+            type="text"
+            className="border border-solid rounded"
+            name="firstName"
+            value={formData.firstName}
+            onChange={handleInputChange}
+          ></input>
+        </div>
+        <div className="border-b border-gray-200 h-12 flex items-center justify-start ml-1">
+          <span>Surname</span>
+          <input
+            readOnly={!showNewInfo}
+            type="text"
+            className="border border-solid rounded"
+            name="surname"
+            value={formData.surname}
+            onChange={handleInputChange}
+          ></input>
+        </div>
+        <div className="border-b border-gray-200 h-12 flex items-center justify-start ml-1">
+          <span>Social Security Number</span>
+          <input
+            readOnly={!showNewInfo}
+            className="border border-solid rounded"
+            name="ssn"
+            value={formData.ssn}
+            onChange={handleInputChange}
+          ></input>
+        </div>
+        <div className="border-b border-gray-200 h-12 flex items-center justify-start ml-1">
+          <span>Phone</span>
+          <input
+            readOnly={!showNewInfo}
+            type="tel"
+            className="border border-solid rounded"
+            name="phone"
+            value={formData.phone}
+            onChange={handleInputChange}
+          ></input>
+        </div>
+        <div className="border-b border-gray-200 h-12 flex items-center justify-start ml-1">
+          <span>Email</span>
+          <input
+            readOnly={!showNewInfo}
+            type="email"
+            className="border border-solid rounded"
+            name="email"
+            value={formData.email}
+            onChange={handleInputChange}
+          ></input>
+        </div>
+        <div className="border-b border-gray-200 h-12 flex items-center justify-start ml-1">
+          <span>Birthdate</span>
+          <input
+            readOnly={!showNewInfo}
+            type="date"
+            className="border border-solid rounded"
+            name="birthdate"
+            value={formData.birthdate}
+            onChange={handleInputChange}
+          ></input>
+        </div>
+        <div className="border-b border-gray-200 h-12 flex items-center justify-start ml-1">
+          <span>Gender</span>
+          <select
+            disabled={!showNewInfo}
+            name="gender"
+            value={formData.gender}
+            onChange={handleInputChange}
+            className="border border-solid rounded"
+          >
+            <option>{""}</option>
+            <option>Male</option>
+            <option>Female</option>
+          </select>
+        </div>
+        <div className="border-b border-gray-200 h-12 flex items-center justify-start ml-1">
+          <span>Existing Health Problems</span>
+          <input
+            readOnly={!showNewInfo}
+            type="text"
+            className="border border-solid rounded"
+            name="healthproblems"
+            value={formData.healthproblems}
+            onChange={handleInputChange}
+          ></input>
+        </div>
+        <div className="border-b border-gray-200 h-12 flex items-center justify-start ml-1">
+          <span>Emergency Contact Phone</span>
+          <input
+            readOnly={!showNewInfo}
+            type="tel"
+            className="border border-solid rounded"
+            name="emerphone"
+            value={formData.emerphone}
+            onChange={handleInputChange}
+          ></input>
+        </div>
+        <div className="border-b border-gray-200 h-12 flex items-center justify-start ml-1">
+          <span>Emergency Contact Name</span>
+          <input
+            readOnly={!showNewInfo}
+            className="border border-solid rounded"
+            name="emername"
+            value={formData.emername}
+            onChange={handleInputChange}
+          ></input>
+        </div>
+      </div> */}
       <div className="flex flex-col">
         <div className="flex items-center space-x-4 border-b border-gray-200 h-12 justify-start ml-1">
           <span className="w-1/3 text-left">First Name</span>
@@ -328,7 +443,7 @@ export default function UserDetails() {
           onChange={handleInputChange}
           readOnly={!showNewInfo}
           className="border border-solid rounded"
-        />
+        ></input>
       </div>
     </div>
   );

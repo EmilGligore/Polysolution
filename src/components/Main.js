@@ -25,7 +25,7 @@ export default function Main() {
   };
 
   return (
-    <main className="flex h-screen w-full bg-blue-800">
+    <main className="flex h-screen w-full bg-blue-800 ">
       <SideBar setActiveComponent={setActiveComponent} />
       <div className="flex-grow rounded-tl border border-blue-800 bg-white">
         {renderComponent()}
