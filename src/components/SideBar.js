@@ -11,7 +11,7 @@ import "../index.css";
 
 export default function SideBar({ setActiveComponent }) {
   return (
-    <div className="w-14 flex flex-col items-center align-middle bg-blue-800">
+    <div className="w-14 flex flex-col items-center align-middle bg-blue-800 shadow-[inset_0_-2px_4px_rgba(0,0,0,0.6)]">
       <ul>
         <li onClick={() => setActiveComponent("schedule")} title="Schedule">
           <FontAwesomeIcon
