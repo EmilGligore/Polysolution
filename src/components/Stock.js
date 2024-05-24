@@ -3,7 +3,6 @@ import { db } from "../config/firebase";
 import {
   getDocs,
   collection,
-  updateDoc,
   doc,
   addDoc,
   deleteDoc,
@@ -26,7 +25,7 @@ export default function Stock() {
       setStock(filteredData);
     };
     getStock();
-  }, []);
+  }, [stockCollectionRef]);
 
   const addNewStock = () => {
     const newStock = {
@@ -38,6 +37,19 @@ export default function Stock() {
   };
 
   const handleInputChange = (id, field, value) => {
+    const lettersOnly = /^[A-Za-z\s]*$/;
+    const numbersOnly = /^\d*$/;
+
+    if (field === "name" && !lettersOnly.test(value)) {
+      alert("Only letters are allowed for Item Name.");
+      return;
+    }
+
+    if (field === "quantity" && !numbersOnly.test(value)) {
+      alert("Only numbers are allowed for Quantity.");
+      return;
+    }
+
     const updatedStock = stock.map((item) => {
       if (item.id === id || item === id) {
         return { ...item, [field]: value };
@@ -51,13 +63,13 @@ export default function Stock() {
     if (id) {
       const itemDocRef = doc(db, "stock", id);
       try {
-        await updateDoc(itemDocRef, {
+        const docRef = await addDoc(stockCollectionRef, {
           name: item.name,
           quantity: item.quantity,
         });
-        console.log("Document successfully updated!");
+        console.log("New document added with ID:", docRef.id);
       } catch (error) {
-        console.error("Error updating document: ", error);
+        console.error("Error adding new document: ", error);
       }
     } else {
       try {
@@ -164,15 +176,18 @@ export default function Stock() {
                   <button
                     onClick={() => toggleEdit(item.id)}
                     className={`${
-                      item.isEditable ? "bg-blue-500" : "bg-blue-500"
-                    } hover:bg-blue-700 py-1 px-4 m-1 rounded text-white`}
+                      item.isEditable
+                        ? "bg-blue-500 hover:bg-green-500"
+                        : "bg-blue-500 hover:bg-blue-700"
+                    } py-1 px-4 m-1 rounded text-white`}
                     style={{ width: "70px" }}
                   >
                     {item.isEditable ? "Save" : "Edit"}
                   </button>
+
                   <button
                     onClick={() => deleteStockItem(item.id)}
-                    className="bg-blue-500 hover:bg-blue-700 py-1 m-1 mr-2 rounded text-white"
+                    className="bg-blue-500 hover:bg-red-500 py-1 m-1 mr-2 rounded text-white"
                     style={{ width: "70px" }}
                   >
                     Delete

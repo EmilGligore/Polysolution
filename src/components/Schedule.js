@@ -11,22 +11,24 @@ import {
 
 export default function Schedule() {
   const [cabinets, setCabinets] = useState([]);
+  const [clients, setClients] = useState([]);
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
-    const day = String(today.getDate()).padStart(2, '0');
-    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, "0");
+    const month = String(today.getMonth() + 1).padStart(2, "0");
     const year = today.getFullYear();
     return `${year}-${month}-${day}`;
   });
-  
   const [hoveredDocId, setHoveredDocId] = useState(null);
 
   const cabinetCollections = useMemo(() => {
     return ["Cabinet 1", "Cabinet 2", "Cabinet 3"].map((cabinetName) => ({
       name: cabinetName,
-      collectionRef: collection(db, "cabinets/cabinets", cabinetName),
+      collectionRef: collection(db, "cabinets", "cabinets", cabinetName),
     }));
   }, []);
+
+  const clientsCollectionRef = useMemo(() => collection(db, "clients"), []);
 
   useEffect(() => {
     const fetchCabinetContents = async () => {
@@ -38,6 +40,7 @@ export default function Schedule() {
               ...doc.data(),
               id: doc.id,
               isEditable: false,
+              clientId: doc.data().clientId,
             }));
             return { name, documents };
           } catch (err) {
@@ -50,30 +53,25 @@ export default function Schedule() {
       setCabinets(fetchedCabinets);
     };
 
+    const fetchClients = async () => {
+      try {
+        const data = await getDocs(clientsCollectionRef);
+        const clientsArray = data.docs.map((doc) => ({
+          id: doc.id,
+          name: `${doc.data().firstName} ${doc.data().surname}`,
+        }));
+        setClients(clientsArray);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
     fetchCabinetContents();
-  }, [cabinetCollections]);
+    fetchClients();
+  }, [cabinetCollections, clientsCollectionRef]);
 
   const handleDateChange = (e) => {
     setSelectedDate(e.target.value);
-  };
-
-  const handleInputChange = (cabinetName, docId, newValue, field) => {
-    setCabinets((cabinets) =>
-      cabinets.map((cabinet) => {
-        if (cabinet.name === cabinetName) {
-          return {
-            ...cabinet,
-            documents: cabinet.documents.map((doc) => {
-              if (doc.id === docId) {
-                return { ...doc, [field]: newValue };
-              }
-              return doc;
-            }),
-          };
-        }
-        return cabinet;
-      })
-    );
   };
 
   const handleEdit = async (cabinetName, docId) => {
@@ -111,6 +109,58 @@ export default function Schedule() {
     }
 
     handleToggleEditable(cabinetName, docId);
+  };
+
+  const handleInputChange = (cabinetName, docId, newValue, field) => {
+    const lettersOnly = /^[A-Za-z\s]*$/;
+    if (
+      (field === "procedure" || field === "doctor") &&
+      !lettersOnly.test(newValue)
+    ) {
+      alert("Only letters are allowed for Procedure and Doctor fields.");
+      return;
+    }
+
+    setCabinets((cabinets) =>
+      cabinets.map((cabinet) => {
+        if (cabinet.name === cabinetName) {
+          return {
+            ...cabinet,
+            documents: cabinet.documents.map((doc) => {
+              if (doc.id === docId) {
+                if (
+                  field === "startTime" &&
+                  doc.endTime &&
+                  newValue > doc.endTime
+                ) {
+                  alert("Start time cannot be after end time.");
+                  return doc;
+                }
+                if (
+                  field === "endTime" &&
+                  doc.startTime &&
+                  newValue < doc.startTime
+                ) {
+                  alert("End time cannot be before start time.");
+                  return doc;
+                }
+                if (field === "name") {
+                  const client = clients.find((c) => c.name === newValue);
+                  return {
+                    ...doc,
+                    [field]: newValue,
+                    clientId: client ? client.id : "",
+                  };
+                }
+                return { ...doc, [field]: newValue };
+              }
+              return doc;
+            }),
+          };
+        }
+        return cabinet;
+      })
+    );
   };
 
   const markDocumentAsNotNew = (cabinetName, docId) => {
@@ -155,6 +205,18 @@ export default function Schedule() {
     `id-${Math.random().toString(36).substr(2, 9)}`;
 
   const addNewDocumentToCabinet = (cabinetName) => {
+    const today = new Date();
+    const selectedDateObj = new Date(selectedDate);
+    const maxFutureDate = new Date(today);
+    maxFutureDate.setDate(today.getDate() + 30);
+
+    today.setHours(0, 0, 0, 0);
+
+    if (selectedDateObj < today || selectedDateObj > maxFutureDate) {
+      alert("Appointments can only be scheduled within 30 days from today.");
+      return;
+    }
+
     setCabinets((cabinets) => {
       return cabinets.map((cabinet) => {
         if (cabinet.name === cabinetName) {
@@ -200,8 +262,12 @@ export default function Schedule() {
   return (
     <div className="flex-grow">
       <div className="flex items-center justify-center border-b border-gray-200 h-12">
-      <input type="date" value={selectedDate} onChange={handleDateChange} className=""></input>
-
+        <input
+          type="date"
+          value={selectedDate}
+          onChange={handleDateChange}
+          className=""
+        ></input>
       </div>
       {cabinets.map((cabinet) => (
         <div key={cabinet.name} className=" bg-white rounded">
@@ -264,9 +330,9 @@ export default function Schedule() {
                     }
                     className="w-13 ml-[134px]"
                   ></input>
-                  <input
+                  <select
                     value={doc.name}
-                    readOnly={!doc.isEditable}
+                    disabled={!doc.isEditable}
                     onChange={(e) =>
                       handleInputChange(
                         cabinet.name,
@@ -276,7 +342,14 @@ export default function Schedule() {
                       )
                     }
                     className="w-1/6 ml-[134px]"
-                  />
+                  >
+                    <option value="">Select Client</option>
+                    {clients.map((client) => (
+                      <option key={client.id} value={client.name}>
+                        {client.name}
+                      </option>
+                    ))}
+                  </select>
                   <input
                     id="procedure"
                     readOnly={!doc.isEditable}
@@ -312,15 +385,18 @@ export default function Schedule() {
                   <button
                     onClick={() => handleEdit(cabinet.name, doc.id)}
                     className={`${
-                      doc.isEditable ? "bg-blue-500" : "bg-blue-500"
-                    } hover:bg-blue-700 py-1 px-4 m-1 rounded text-white`}
+                      doc.isEditable
+                        ? "bg-blue-500 hover:bg-green-500"
+                        : "bg-blue-500 hover:bg-blue-700"
+                    } py-1 px-4 m-1 rounded text-white`}
                     style={{ width: "70px" }}
                   >
                     {doc.isEditable ? "Save" : "Edit"}
                   </button>
+
                   <button
                     onClick={() => handleDelete(cabinet.name, doc.id)}
-                    className="bg-blue-500 hover:bg-blue-700 py-1 m-1 mr-3 rounded text-white"
+                    className="bg-blue-500 hover:bg-red-500 py-1 m-1 mr-3 rounded text-white"
                     style={{ width: "70px" }}
                   >
                     Delete

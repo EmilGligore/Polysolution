@@ -2,7 +2,6 @@ import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faHospitalUser,
-  faCalendarDays,
   faUser,
   faBoxesStacked,
   faBed,
@@ -11,7 +10,7 @@ import "../index.css";
 
 export default function SideBar({ setActiveComponent }) {
   return (
-    <div className="w-14 flex flex-col items-center align-middle bg-blue-800 shadow-[inset_0_-2px_4px_rgba(0,0,0,0.6)]">
+    <div className="w-14 flex flex-col items-center align-middle bg-inherit shadow-[0_35px_60px_-15px_rgba(0,0,0,0.3)]">
       <ul>
         <li onClick={() => setActiveComponent("schedule")} title="Schedule">
           <FontAwesomeIcon

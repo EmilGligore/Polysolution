@@ -3,7 +3,6 @@ import SideBar from "./SideBar";
 import UserDetails from "./UserDetails";
 import Schedule from "./Schedule";
 import Stock from "./Stock";
-import Auth from "./Auth";
 import Beds from "./Beds";
 
 export default function Main() {
@@ -25,9 +24,9 @@ export default function Main() {
   };
 
   return (
-    <main className="flex h-screen w-full bg-blue-800 ">
+    <main className="flex h-screen w-full ">
       <SideBar setActiveComponent={setActiveComponent} />
-      <div className="flex-grow rounded-tl border border-blue-800 bg-white">
+      <div className="flex-grow rounded-tl border border-inherit bg-white">
         {renderComponent()}
       </div>
     </main>

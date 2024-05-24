@@ -4,50 +4,78 @@ import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
 
 export default function Beds() {
   const [beds, setBeds] = useState([]);
+  const [clients, setClients] = useState([]);
 
   const bedsCollection = useMemo(() => collection(db, "beds"), []);
+  const clientsCollectionRef = useMemo(() => collection(db, "clients"), []);
 
   useEffect(() => {
     const fetchBeds = async () => {
-      const querySnapshot = await getDocs(bedsCollection);
-      const bedsArray = querySnapshot.docs
-        .map((doc) => ({
+      try {
+        const querySnapshot = await getDocs(bedsCollection);
+        const bedsArray = querySnapshot.docs
+          .map((doc) => ({
+            id: doc.id,
+            patient: doc.data().pacient,
+            occupied: doc.data().occupied,
+            number: doc.data().number,
+          }))
+          .sort((a, b) => a.number - b.number);
+        setBeds(bedsArray);
+      } catch (error) {
+        console.error("Error fetching beds:", error);
+      }
+    };
+
+    const fetchClients = async () => {
+      try {
+        const querySnapshot = await getDocs(clientsCollectionRef);
+        const clientsArray = querySnapshot.docs.map((doc) => ({
           id: doc.id,
-          patient: doc.data().pacient,
-          occupied: doc.data().occupied,
-          number: doc.data().number,
-        }))
-        .sort((a, b) => a.number - b.number);
-      setBeds(bedsArray);
+          name: `${doc.data().firstName} ${doc.data().surname}`,
+        }));
+        setClients(clientsArray);
+      } catch (error) {
+        console.error("Error fetching clients:", error);
+      }
     };
 
     fetchBeds();
-  }, [bedsCollection]);
+    fetchClients();
+  }, [bedsCollection, clientsCollectionRef]);
 
   const handlePatientChange = async (bedId, newPatient) => {
     const bedDocRef = doc(db, "beds", bedId);
-    await updateDoc(bedDocRef, { pacient: newPatient });
+    try {
+      await updateDoc(bedDocRef, { pacient: newPatient });
 
-    const updatedBeds = beds.map((bed) =>
-      bed.id === bedId ? { ...bed, patient: newPatient } : bed
-    );
-    setBeds(updatedBeds);
+      const updatedBeds = beds.map((bed) =>
+        bed.id === bedId ? { ...bed, patient: newPatient } : bed
+      );
+      setBeds(updatedBeds);
+    } catch (error) {
+      console.error("Error updating patient:", error);
+    }
   };
 
   const handleOccupiedChange = async (bedId, newOccupied) => {
     const bedDocRef = doc(db, "beds", bedId);
     const occupiedValue = newOccupied === "Yes";
-    await updateDoc(bedDocRef, { occupied: occupiedValue });
+    try {
+      await updateDoc(bedDocRef, { occupied: occupiedValue });
 
-    const updatedBeds = beds.map((bed) =>
-      bed.id === bedId ? { ...bed, occupied: occupiedValue } : bed
-    );
-    setBeds(updatedBeds);
+      const updatedBeds = beds.map((bed) =>
+        bed.id === bedId ? { ...bed, occupied: occupiedValue } : bed
+      );
+      setBeds(updatedBeds);
+    } catch (error) {
+      console.error("Error updating occupied status:", error);
+    }
   };
 
   return (
     <div className="flex-grow">
-      <h1 className="flex font-bold border-b border-gray-200 h-12 justify-start items-center pl-1.5 ">
+      <h1 className="flex font-bold border-b border-gray-200 h-12 justify-start items-center pl-1.5">
         Beds Availability
       </h1>
       <table className="h-12 border-b border-gray-200 w-full">
@@ -63,18 +91,27 @@ export default function Beds() {
             <tr key={bed.id} className="h-12 border-b border-gray-200">
               <td className="pl-1.5">{`Bed No. ${bed.number}`}</td>
               <td>
-                <input
+                <select
                   value={bed.patient}
                   onChange={(e) => handlePatientChange(bed.id, e.target.value)}
-                  placeholder="Pacients Name..."
-                />
+                >
+                  <option value="">Select Patient</option>
+                  {clients.map((client) => (
+                    <option key={client.id} value={client.name}>
+                      {client.name}
+                    </option>
+                  ))}
+                </select>
               </td>
               <td>
                 <select
                   value={bed.occupied ? "Yes" : "No"}
                   onChange={(e) => handleOccupiedChange(bed.id, e.target.value)}
+                  disabled={!bed.patient}
                 >
-                  <option value="Yes">Yes</option>
+                  <option value="Yes" disabled={!bed.patient}>
+                    Yes
+                  </option>
                   <option value="No">No</option>
                 </select>
               </td>

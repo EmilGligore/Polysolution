@@ -187,7 +187,11 @@ export default function UserDetails() {
               handleEdit();
             }
           }}
-          className="bg-blue-500 hover:bg-blue-700 py-1 px-4 m-1 rounded text-white"
+          className={`${
+            selectedOptionIndex > 0 && !showNewInfo
+              ? "bg-blue-500 hover:bg-blue-700"
+              : "bg-blue-500 hover:bg-green-500"
+          } py-1 px-4 m-1 rounded text-white`}
           style={{ width: "70px" }}
         >
           {selectedOptionIndex > 0 && !showNewInfo ? "Edit" : "Save"}
