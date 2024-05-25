@@ -44,6 +44,9 @@ export default function UserDetails() {
             : "",
         }));
         setClientsList(filteredData);
+        if (filteredData.length > 0) {
+          setShowNewInfo(false);
+        }
       } catch (err) {
         console.error(err);
       }
@@ -194,9 +197,8 @@ export default function UserDetails() {
           } py-1 px-4 m-1 rounded text-white`}
           style={{ width: "70px" }}
         >
-          {selectedOptionIndex > 0 && !showNewInfo ? "Edit" : "Save"}
+          {selectedOptionIndex > 0 || showNewInfo ? "Save" : "Edit"}
         </button>
-
         <button
           onClick={() => {
             setIsAddingClient(true);

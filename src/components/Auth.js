@@ -25,7 +25,7 @@ export default function Auth({ onLogin }) {
   };
 
   if (recoverPasswordMode) {
-    return <RecoverPassword />;
+    return <RecoverPassword onBack={() => setRecoverPasswordMode(false)} />;
   }
 
   return (
@@ -115,5 +115,13 @@ export default function Auth({ onLogin }) {
         </p>
       </div>
     </div>
+    // <div className="bg-gradient-to-r from-blue-800 via-blue-600 to-blue-500 w-full h-screen flex justify-center items-center overflow-hidden relative">
+    //   <img src={logoW} alt="LogoW" className="absolute w-2/3 rotate-[-45deg] left-[-10%] top-[0%] opacity-25"/>
+    //   <img src={logoW} alt="LogoW" className="absolute w-2/3 rotate-[-45deg] left-[15%] top-[30%] opacity-25"/>
+    //   <img src={logoW} alt="LogoW" className="absolute w-2/3 rotate-[-45deg] left-[45%] top-[30%] opacity-25"/>
+    //   <img src={logoW} alt="LogoW" className="absolute w-2/3 rotate-[-45deg] left-[75%] top-[30%] opacity-25"/>
+    //   <img src={logoW} alt="LogoW" className="absolute w-2/3 rotate-[-45deg] left-[-15%] top-[45%] opacity-25"/>
+    //   <img src={logoW} alt="LogoW" className="absolute w-2/3 rotate-[-45deg] left-[55%] top-[30%] opacity-25"/>
+    // </div>
   );
 }

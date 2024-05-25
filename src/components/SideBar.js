@@ -12,14 +12,6 @@ export default function SideBar({ setActiveComponent }) {
   return (
     <div className="w-14 flex flex-col items-center align-middle bg-inherit shadow-[0_35px_60px_-15px_rgba(0,0,0,0.3)]">
       <ul>
-        <li onClick={() => setActiveComponent("schedule")} title="Schedule">
-          <FontAwesomeIcon
-            icon={faHospitalUser}
-            style={{ color: "#ffffff" }}
-            size="lg"
-            className="border-r-2 border-transparent hover:border-white px-4 py-2"
-          />
-        </li>
         <li
           onClick={() => setActiveComponent("userDetails")}
           title="User Details"
@@ -29,6 +21,14 @@ export default function SideBar({ setActiveComponent }) {
             style={{ color: "#ffffff" }}
             size="lg"
             className="border-r-2 border-transparent hover:border-white px-4 pl-5 pr-[17px] py-2"
+          />
+        </li>
+        <li onClick={() => setActiveComponent("schedule")} title="Schedule">
+          <FontAwesomeIcon
+            icon={faHospitalUser}
+            style={{ color: "#ffffff" }}
+            size="lg"
+            className="border-r-2 border-transparent hover:border-white px-4 py-2"
           />
         </li>
         <li onClick={() => setActiveComponent("stock")} title="Stock">
