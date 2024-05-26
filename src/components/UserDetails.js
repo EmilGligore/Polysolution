@@ -75,6 +75,54 @@ export default function UserDetails() {
     }
   }
 
+  const handleSave = async () => {
+    if (!isFormValid()) {
+      alert("Please fill out all fields correctly before saving.");
+      return;
+    }
+    if (selectedOptionIndex > 0) {
+      const clientDocRef = doc(
+        db,
+        "clients",
+        clientsList[selectedOptionIndex - 1].id
+      );
+      try {
+        await updateDoc(clientDocRef, formData);
+        alert("Client updated successfully!");
+      } catch (err) {
+        console.error("Error updating document: ", err);
+        alert("Failed to update client information.");
+      }
+      setShowNewInfo(false);
+    } else {
+      handleAddNewClient();
+    }
+  };
+
+  const isFormValid = () => {
+    const namePattern = /^[A-Za-z]{1,12}$/;
+    const ssnPattern = /^\d{1,15}$/;
+    const phonePattern = /^\d{1,15}$/;
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const birthdatePattern = /^\d{2}\.\d{2}\.\d{4}$/;
+    const healthPattern = /^[A-Za-z0-9\s]{1,50}$/;
+    const emerNamePattern = /^[A-Za-z\s]{1,30}$/;
+
+    return (
+      namePattern.test(formData.firstName) &&
+      namePattern.test(formData.surname) &&
+      ssnPattern.test(formData.ssn) &&
+      phonePattern.test(formData.phone) &&
+      emailPattern.test(formData.email) &&
+      birthdatePattern.test(formData.birthdate) &&
+      (formData.gender === "Male" || formData.gender === "Female") &&
+      healthPattern.test(formData.healthproblems) &&
+      phonePattern.test(formData.emerphone) &&
+      emerNamePattern.test(formData.emername) &&
+      formData.gdpr
+    );
+  };
+
   const handleAddNewClient = async () => {
     const isFormComplete = Object.values(formData).every(
       (value) => value !== "" || typeof value === "boolean"
@@ -129,7 +177,7 @@ export default function UserDetails() {
       setShowNewInfo(false);
     } else {
       resetFormData();
-      setShowNewInfo(true);
+      setShowNewInfo(false);
     }
   };
 
@@ -137,29 +185,32 @@ export default function UserDetails() {
     setFormData(initialFormData);
   };
 
-  const handleEdit = async () => {
-    if (selectedOptionIndex > 0) {
-      const clientDocRef = doc(
-        db,
-        "clients",
-        clientsList[selectedOptionIndex - 1].id
-      );
-      try {
-        await updateDoc(clientDocRef, formData);
-        alert("Client updated successfully!");
-      } catch (err) {
-        console.error("Error updating document: ", err);
-        alert("Failed to update client information.");
-      }
-    }
-    setShowNewInfo(!showNewInfo);
+  const handleEdit = () => {
+    setShowNewInfo(true);
   };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
+    let newValue = value;
+  
+    if (name === "firstName" || name === "surname" || name === "emername") {
+      newValue = newValue
+        .replace(/[^A-Za-z\s]/g, "")
+        .slice(0, name === "emername" ? 30 : 12);
+    } else if (name === "ssn" || name === "phone" || name === "emerphone") {
+      newValue = newValue.replace(/[^0-9]/g, "").slice(0, 15);
+    } else if (name === "healthproblems") {
+      newValue = newValue.replace(/[^A-Za-z0-9\s]/g, "").slice(0, 50);
+    //   newValue = newValue.replace(/[^0-9.]/g, "");
+    //   if (newValue.length === 2 || newValue.length === 5) {
+    //     newValue += ".";
+    //   }
+    //   if (newValue.length > 10) newValue = newValue.slice(0, 10);
+     }
+  
     setFormData((prevFormData) => ({
       ...prevFormData,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: type === "checkbox" ? checked : newValue,
     }));
   };
 
@@ -173,6 +224,7 @@ export default function UserDetails() {
           <select
             value={selectedOptionIndex}
             onChange={(e) => changeOption(parseInt(e.target.value))}
+            disabled={showNewInfo}
           >
             <option value="0">Select Existing Client</option>
             {clientsList.map((client, index) => (
@@ -183,29 +235,38 @@ export default function UserDetails() {
           </select>
         </div>
         <button
-          onClick={() => {
-            if (selectedOptionIndex === 0) {
-              handleAddNewClient();
-            } else {
-              handleEdit();
-            }
-          }}
+          onClick={handleEdit}
           className={`${
-            selectedOptionIndex > 0 && !showNewInfo
+            !showNewInfo && selectedOptionIndex > 0
               ? "bg-blue-500 hover:bg-blue-700"
-              : "bg-blue-500 hover:bg-green-500"
+              : "bg-gray-400"
           } py-1 px-4 m-1 rounded text-white`}
           style={{ width: "70px" }}
+          disabled={showNewInfo || selectedOptionIndex === 0}
         >
-          {selectedOptionIndex > 0 || showNewInfo ? "Save" : "Edit"}
+          Edit
+        </button>
+        <button
+          onClick={handleSave}
+          className={`${
+            showNewInfo ? "bg-blue-500 hover:bg-green-500" : "bg-gray-400"
+          } py-1 px-4 m-1 rounded text-white`}
+          style={{ width: "70px" }}
+          disabled={!showNewInfo || !isFormValid()}
+        >
+          Save
         </button>
         <button
           onClick={() => {
-            setIsAddingClient(true);
-            changeOption(0);
+            resetFormData();
+            setShowNewInfo(true);
+            setSelectedOptionIndex(0);
           }}
-          className="bg-blue-500 hover:bg-blue-700 px-3 py-1 m-1 rounded text-white"
+          className={`${
+            showNewInfo ? "bg-gray-400" : "bg-blue-500 hover:bg-blue-700"
+          } px-3 py-1 m-1 rounded text-white`}
           style={{ width: "70px" }}
+          disabled={showNewInfo}
         >
           + Add
         </button>
@@ -338,4 +399,4 @@ export default function UserDetails() {
       </div>
     </div>
   );
-}
+  }
