@@ -74,7 +74,7 @@ export default function Schedule() {
     setSelectedDate(e.target.value);
   };
 
-  const handleEdit = async (cabinetName, docId) => {
+  const handleSave = async (cabinetName, docId) => {
     const cabinet = cabinets.find((cabinet) => cabinet.name === cabinetName);
     const docToUpdate = cabinet.documents.find((doc) => doc.id === docId);
 
@@ -89,26 +89,68 @@ export default function Schedule() {
       date: selectedDate,
     };
 
-    if (docToUpdate.isEditable) {
-      if (docToUpdate.isNew) {
-        try {
-          await setDoc(docRef, updateObject);
-          console.log("Document successfully added!");
-          markDocumentAsNotNew(cabinetName, docId);
-        } catch (error) {
-          console.error("Error adding document: ", error);
-        }
-      } else {
-        try {
-          await updateDoc(docRef, updateObject);
-          console.log("Document successfully updated!");
-        } catch (error) {
-          console.error("Error updating document: ", error);
-        }
+    if (docToUpdate.isNew) {
+      try {
+        await setDoc(docRef, updateObject);
+        console.log("Document successfully added!");
+        markDocumentAsNotNew(cabinetName, docId);
+      } catch (error) {
+        console.error("Error adding document: ", error);
+      }
+    } else {
+      try {
+        await updateDoc(docRef, updateObject);
+        console.log("Document successfully updated!");
+      } catch (error) {
+        console.error("Error updating document: ", error);
       }
     }
 
-    handleToggleEditable(cabinetName, docId);
+    setCabinets((cabinets) =>
+      cabinets.map((cabinet) => {
+        if (cabinet.name === cabinetName) {
+          return {
+            ...cabinet,
+            documents: cabinet.documents.map((doc) => {
+              if (doc.id === docId) {
+                return {
+                  ...doc,
+                  isEditable: false,
+                  isEditing: false,
+                  isEdited: false,
+                };
+              }
+              return doc;
+            }),
+          };
+        }
+        return cabinet;
+      })
+    );
+  };
+
+  const handleEditButton = (cabinetName, docId) => {
+    setCabinets((cabinets) =>
+      cabinets.map((cabinet) => {
+        if (cabinet.name === cabinetName) {
+          return {
+            ...cabinet,
+            documents: cabinet.documents.map((doc) => {
+              if (doc.id === docId) {
+                return {
+                  ...doc,
+                  isEditable: true,
+                  isEditing: true,
+                  isEdited: true,
+                };
+              }
+              return doc;
+            }),
+          };
+        }
+        return cabinet;
+      })
+    );
   };
 
   const handleInputChange = (cabinetName, docId, newValue, field) => {
@@ -229,12 +271,13 @@ export default function Schedule() {
             doctor: "",
             isEditable: true,
             isNew: true,
+            isEditing: true,
             date: selectedDate,
           };
           return { ...cabinet, documents: [...cabinet.documents, newDocument] };
         }
         return cabinet;
-      });
+      })
     });
   };
 
@@ -259,15 +302,104 @@ export default function Schedule() {
     }
   };
 
+  const handleAddNewDocument = (cabinetName) => {
+    const today = new Date();
+    const selectedDateObj = new Date(selectedDate);
+    const maxFutureDate = new Date(today);
+    maxFutureDate.setDate(today.getDate() + 30);
+
+    if (selectedDateObj < today || selectedDateObj > maxFutureDate) {
+      alert("Appointments can only be scheduled within 30 days from today.");
+      return;
+    }
+
+    setCabinets((cabinets) =>
+      cabinets.map((cabinet) => {
+        if (cabinet.name === cabinetName) {
+          const newDocument = {
+            id: generateUniqueId(),
+            startTime: "",
+            endTime: "",
+            name: "",
+            procedure: "",
+            doctor: "",
+            isEditable: true,
+            isNew: true,
+            date: selectedDate,
+          };
+          return { ...cabinet, documents: [...cabinet.documents, newDocument] };
+        }
+        return cabinet;
+      })
+    );
+  };
+
+  const isFormFilled = (doc) => {
+    return (
+      doc.startTime && doc.endTime && doc.name && doc.procedure && doc.doctor
+    );
+  };
+
+  const isBeforeToday =
+    new Date(selectedDate) < new Date().setHours(0, 0, 0, 0);
+  const isAfter30DaysFromToday =
+    new Date(selectedDate) > new Date().setDate(new Date().getDate() + 30);
+
+  const handlePrevDate = () => {
+    const prevDate = new Date(selectedDate);
+    prevDate.setDate(prevDate.getDate() - 1);
+    setSelectedDate(prevDate.toISOString().split("T")[0]);
+  };
+
+  const handleNextDate = () => {
+    const nextDate = new Date(selectedDate);
+    nextDate.setDate(nextDate.getDate() + 1);
+    setSelectedDate(nextDate.toISOString().split("T")[0]);
+  };
+
+  const hasOverlap = (startTime1, endTime1, startTime2, endTime2) => {
+    return (
+      (startTime1 < endTime2 && startTime2 < endTime1) ||
+      (startTime2 < endTime1 && startTime1 < endTime2)
+    );
+  };
+
+  const validateAppointment = (cabinetName, docId, newStartTime, newEndTime) => {
+    const cabinet = cabinets.find((cabinet) => cabinet.name === cabinetName);
+    const overlappingAppointment = cabinet.documents.some((doc) => {
+      if (doc.id !== docId && doc.date === selectedDate) {
+        return hasOverlap(doc.startTime, doc.endTime, newStartTime, newEndTime);
+      }
+      return false;
+    });
+    return !overlappingAppointment;
+  };
+
+  const handleInputChangeWithValidation = (cabinetName, docId, newValue, field) => {
+    const cabinet = cabinets.find((cabinet) => cabinet.name === cabinetName);
+    const doc = cabinet.documents.find((doc) => doc.id === docId);
+    const newStartTime = field === "startTime" ? newValue : doc.startTime;
+    const newEndTime = field === "endTime" ? newValue : doc.endTime;
+
+    if (!validateAppointment(cabinetName, docId, newStartTime, newEndTime)) {
+      alert("Appointment times overlap. Please choose a different time.");
+      return;
+    }
+
+    handleInputChange(cabinetName, docId, newValue, field);
+  };
+
   return (
     <div className="flex-grow">
       <div className="flex items-center justify-center border-b border-gray-200 h-12">
+        <button onClick={handlePrevDate}>{"<"}</button>
         <input
           type="date"
           value={selectedDate}
           onChange={handleDateChange}
           className=""
         ></input>
+        <button onClick={handleNextDate}>{">"}</button>
       </div>
       {cabinets.map((cabinet) => (
         <div key={cabinet.name} className=" bg-white rounded">
@@ -282,10 +414,14 @@ export default function Schedule() {
               <span className="w-1/5 font-semibold">Procedure</span>
               <span className="w-1/5 font-semibold">Doctor</span>
             </div>
-
             <button
               onClick={() => addNewDocumentToCabinet(cabinet.name)}
-              className="bg-blue-500 hover:bg-blue-700 w-[148px] rounded mr-3 my-2 py-1 text-white"
+              className={`${
+                isBeforeToday || isAfter30DaysFromToday
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-blue-500 hover:bg-blue-700"
+              } w-[148px] rounded mr-3 my-2 py-1 text-white`}
+              disabled={isBeforeToday || isAfter30DaysFromToday}
             >
               + Add
             </button>
@@ -306,7 +442,7 @@ export default function Schedule() {
                     readOnly={!doc.isEditable}
                     value={doc.startTime}
                     onChange={(e) =>
-                      handleInputChange(
+                      handleInputChangeWithValidation(
                         cabinet.name,
                         doc.id,
                         e.target.value,
@@ -321,7 +457,7 @@ export default function Schedule() {
                     readOnly={!doc.isEditable}
                     value={doc.endTime}
                     onChange={(e) =>
-                      handleInputChange(
+                      handleInputChangeWithValidation(
                         cabinet.name,
                         doc.id,
                         e.target.value,
@@ -382,25 +518,52 @@ export default function Schedule() {
                 <div
                   className={`flex ${hoveredDocId === doc.id ? "" : "hidden"}`}
                 >
-                  <button
-                    onClick={() => handleEdit(cabinet.name, doc.id)}
-                    className={`${
-                      doc.isEditable
-                        ? "bg-blue-500 hover:bg-green-500"
-                        : "bg-blue-500 hover:bg-blue-700"
-                    } py-1 px-4 m-1 rounded text-white`}
-                    style={{ width: "70px" }}
-                  >
-                    {doc.isEditable ? "Save" : "Edit"}
-                  </button>
-
-                  <button
-                    onClick={() => handleDelete(cabinet.name, doc.id)}
-                    className="bg-blue-500 hover:bg-red-500 py-1 m-1 mr-3 rounded text-white"
-                    style={{ width: "70px" }}
-                  >
-                    Delete
-                  </button>
+                  <>
+                    <button
+                      onClick={() => handleEditButton(cabinet.name, doc.id)}
+                      className={`${
+                        isBeforeToday || doc.isNew || doc.isEdited
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-blue-500 hover:bg-blue-700"
+                      } py-1 px-4 m-1 rounded text-white`}
+                      style={{ width: "70px" }}
+                      disabled={isBeforeToday || doc.isNew || doc.isEdited}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleSave(cabinet.name, doc.id)}
+                      className={`${
+                        !isFormFilled(doc) ||
+                        isBeforeToday ||
+                        isAfter30DaysFromToday ||
+                        !doc.isEditing
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-blue-500 hover:bg-green-500"
+                      } py-1 px-4 m-1 rounded text-white`}
+                      style={{ width: "70px" }}
+                      disabled={
+                        !isFormFilled(doc) ||
+                        isBeforeToday ||
+                        isAfter30DaysFromToday ||
+                        !doc.isEditing
+                      }
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => handleDelete(cabinet.name, doc.id)}
+                      className={`${
+                        isBeforeToday || doc.isNew || doc.isEditing
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-blue-500 hover:bg-red-500"
+                      } py-1 m-1 mr-3 rounded text-white`}
+                      style={{ width: "70px" }}
+                      disabled={isBeforeToday || doc.isNew || doc.isEditing}
+                    >
+                      Delete
+                    </button>
+                  </>
                 </div>
               </div>
             ))}

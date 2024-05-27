@@ -76,27 +76,36 @@ export default function UserDetails() {
   }
 
   const handleSave = async () => {
-    if (!isFormValid()) {
-      alert("Please fill out all fields correctly before saving.");
-      return;
-    }
     if (selectedOptionIndex > 0) {
-      const clientDocRef = doc(
-        db,
-        "clients",
-        clientsList[selectedOptionIndex - 1].id
-      );
+      const clientDocRef = doc(db, "clients", clientsList[selectedOptionIndex - 1].id);
       try {
+        if (!isFormValid()) {
+          alert("Please fill out all fields correctly before saving.");
+          return;
+        }
         await updateDoc(clientDocRef, formData);
         alert("Client updated successfully!");
+        setShowNewInfo(false);
+        refreshClientsList();
       } catch (err) {
         console.error("Error updating document: ", err);
         alert("Failed to update client information.");
       }
-      setShowNewInfo(false);
     } else {
       handleAddNewClient();
     }
+  };
+
+  const refreshClientsList = async () => {
+    const data = await getDocs(clientsCollectionRef);
+    const filteredData = data.docs.map((doc) => ({
+      ...doc.data(),
+      id: doc.id,
+      birthdate: doc.data().birthdate
+        ? timestampToDate(doc.data().birthdate)
+        : "",
+    }));
+    setClientsList(filteredData);
   };
 
   const isFormValid = () => {
@@ -104,34 +113,28 @@ export default function UserDetails() {
     const ssnPattern = /^\d{1,15}$/;
     const phonePattern = /^\d{1,15}$/;
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const birthdatePattern = /^\d{2}\.\d{2}\.\d{4}$/;
     const healthPattern = /^[A-Za-z0-9\s]{1,50}$/;
     const emerNamePattern = /^[A-Za-z\s]{1,30}$/;
-
+  
     return (
       namePattern.test(formData.firstName) &&
       namePattern.test(formData.surname) &&
       ssnPattern.test(formData.ssn) &&
       phonePattern.test(formData.phone) &&
       emailPattern.test(formData.email) &&
-      birthdatePattern.test(formData.birthdate) &&
+      formData.birthdate && // Ensure birthdate is not empty
       (formData.gender === "Male" || formData.gender === "Female") &&
       healthPattern.test(formData.healthproblems) &&
       phonePattern.test(formData.emerphone) &&
-      emerNamePattern.test(formData.emername) &&
-      formData.gdpr
+      emerNamePattern.test(formData.emername)
     );
   };
 
   const handleAddNewClient = async () => {
-    const isFormComplete = Object.values(formData).every(
-      (value) => value !== "" || typeof value === "boolean"
-    );
-    if (!isFormComplete) {
-      alert("Please fill out all fields before saving.");
+    if (!isFormValid()) {
+      alert("Please fill out all fields correctly before saving.");
       return;
     }
-
     try {
       await addDoc(clientsCollectionRef, {
         ...formData,
@@ -140,15 +143,7 @@ export default function UserDetails() {
       alert("Client added successfully!");
       resetFormData();
       setShowNewInfo(false);
-      const data = await getDocs(clientsCollectionRef);
-      const filteredData = data.docs.map((doc) => ({
-        ...doc.data(),
-        id: doc.id,
-        birthdate: doc.data().birthdate
-          ? timestampToDate(doc.data().birthdate)
-          : "",
-      }));
-      setClientsList(filteredData);
+      refreshClientsList();
     } catch (err) {
       console.error("Error adding document: ", err);
       alert("Failed to add new client.");
@@ -192,7 +187,7 @@ export default function UserDetails() {
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     let newValue = value;
-  
+
     if (name === "firstName" || name === "surname" || name === "emername") {
       newValue = newValue
         .replace(/[^A-Za-z\s]/g, "")
@@ -201,13 +196,9 @@ export default function UserDetails() {
       newValue = newValue.replace(/[^0-9]/g, "").slice(0, 15);
     } else if (name === "healthproblems") {
       newValue = newValue.replace(/[^A-Za-z0-9\s]/g, "").slice(0, 50);
-    //   newValue = newValue.replace(/[^0-9.]/g, "");
-    //   if (newValue.length === 2 || newValue.length === 5) {
-    //     newValue += ".";
-    //   }
-    //   if (newValue.length > 10) newValue = newValue.slice(0, 10);
-     }
-  
+    } else if (name === "birthdate") {
+    }
+
     setFormData((prevFormData) => ({
       ...prevFormData,
       [name]: type === "checkbox" ? checked : newValue,
@@ -256,6 +247,7 @@ export default function UserDetails() {
         >
           Save
         </button>
+
         <button
           onClick={() => {
             resetFormData();
@@ -341,6 +333,7 @@ export default function UserDetails() {
         <div className="flex items-center space-x-4 border-b border-gray-200 h-12 justify-start ml-1">
           <span className="w-1/3 text-left">Gender</span>
           <select
+            placeholder="Choose Gender..."
             name="gender"
             disabled={!showNewInfo}
             value={formData.gender}
@@ -386,17 +379,6 @@ export default function UserDetails() {
           />
         </div>
       </div>
-      <div className="border-b border-gray-200 h-12 flex items-center justify-start ml-1">
-        <span>I accept EU GDPR</span>
-        <input
-          type="checkbox"
-          name="gdpr"
-          checked={formData.gdpr}
-          onChange={handleInputChange}
-          readOnly={!showNewInfo}
-          className="border border-solid rounded"
-        />
-      </div>
     </div>
   );
-  }
+}

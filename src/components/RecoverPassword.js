@@ -11,17 +11,20 @@ export default function RecoverPassword({ onBack }) {
   const recoverPassword = async () => {
     if (email) {
       try {
+        console.log("Sending password reset email to:", email);
         await sendPasswordResetEmail(auth, email);
         setMessage("Password reset email sent!");
         setIsSuccess(true);
+        console.log("Password reset email sent successfully.");
       } catch (error) {
         setMessage("Failed to send password reset email.");
-        console.error(error);
+        console.error("Error sending password reset email:", error.message);
         setIsSuccess(false);
       }
     } else {
       setMessage("Please enter your email address.");
       setIsSuccess(false);
+      console.log("Email address not entered.");
     }
   };
 

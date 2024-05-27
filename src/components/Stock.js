@@ -20,6 +20,7 @@ export default function Stock() {
         ...doc.data(),
         id: doc.id,
         isEditable: false,
+        isEdited: false,
       }));
       filteredData.sort((a, b) => a.quantity - b.quantity);
       setStock(filteredData);
@@ -32,6 +33,7 @@ export default function Stock() {
       name: "",
       quantity: 0,
       isEditable: true,
+      isEdited: true,
     };
     setStock([...stock, newStock]);
   };
@@ -63,13 +65,13 @@ export default function Stock() {
     if (id) {
       const itemDocRef = doc(db, "stock", id);
       try {
-        const docRef = await addDoc(stockCollectionRef, {
+        await itemDocRef.set({
           name: item.name,
           quantity: item.quantity,
         });
-        console.log("New document added with ID:", docRef.id);
+        console.log("Document updated with ID:", id);
       } catch (error) {
-        console.error("Error adding new document: ", error);
+        console.error("Error updating document: ", error);
       }
     } else {
       try {
@@ -78,13 +80,13 @@ export default function Stock() {
           quantity: item.quantity,
         });
         console.log("New document added with ID:", docRef.id);
-        setStock((prevStock) => [
-          ...prevStock.filter(
-            (stockItem) =>
-              stockItem.id !== undefined && stockItem.isEditable === false
-          ),
-          { ...item, id: docRef.id, isEditable: false },
-        ]);
+        setStock((prevStock) =>
+          prevStock.map((stockItem) =>
+            stockItem === item
+              ? { ...item, id: docRef.id, isEditable: false, isEdited: false }
+              : stockItem
+          )
+        );
       } catch (error) {
         console.error("Error adding new document: ", error);
       }
@@ -105,10 +107,18 @@ export default function Stock() {
   const toggleEdit = (id) => {
     const updatedStock = stock.map((item) => {
       if (item.id === id) {
-        if (item.isEditable) {
-          updateFirestoreItem(id, item);
-        }
-        return { ...item, isEditable: !item.isEditable };
+        return { ...item, isEditable: true, isEdited: true };
+      }
+      return item;
+    });
+    setStock(updatedStock);
+  };
+
+  const handleSave = (id) => {
+    const updatedStock = stock.map((item) => {
+      if (item.id === id) {
+        updateFirestoreItem(id, item);
+        return { ...item, isEditable: false, isEdited: false };
       }
       return item;
     });
@@ -176,19 +186,36 @@ export default function Stock() {
                   <button
                     onClick={() => toggleEdit(item.id)}
                     className={`${
-                      item.isEditable
-                        ? "bg-blue-500 hover:bg-green-500"
+                      item.isEdited
+                        ? "bg-gray-400 cursor-not-allowed"
                         : "bg-blue-500 hover:bg-blue-700"
                     } py-1 px-4 m-1 rounded text-white`}
                     style={{ width: "70px" }}
+                    disabled={item.isEdited}
                   >
-                    {item.isEditable ? "Save" : "Edit"}
+                    Edit
                   </button>
-
+                  <button
+                    onClick={() => handleSave(item.id)}
+                    className={`${
+                      item.isEditable
+                        ? "bg-blue-500 hover:bg-green-500"
+                        : "bg-gray-400 cursor-not-allowed"
+                    } py-1 px-4 m-1 rounded text-white`}
+                    style={{ width: "70px" }}
+                    disabled={!item.isEditable}
+                  >
+                    Save
+                  </button>
                   <button
                     onClick={() => deleteStockItem(item.id)}
-                    className="bg-blue-500 hover:bg-red-500 py-1 m-1 mr-2 rounded text-white"
+                    className={`${
+                      item.isEdited
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-blue-500 hover:bg-red-500"
+                    } py-1 m-1 mr-2 rounded text-white`}
                     style={{ width: "70px" }}
+                    disabled={item.isEdited}
                   >
                     Delete
                   </button>

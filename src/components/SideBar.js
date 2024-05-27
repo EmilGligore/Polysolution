@@ -5,6 +5,7 @@ import {
   faUser,
   faBoxesStacked,
   faBed,
+  faFileArrowDown,
 } from "@fortawesome/free-solid-svg-icons";
 import "../index.css";
 
@@ -42,6 +43,14 @@ export default function SideBar({ setActiveComponent }) {
         <li onClick={() => setActiveComponent("beds")} title="Beds">
           <FontAwesomeIcon
             icon={faBed}
+            style={{ color: "#ffffff" }}
+            size="lg"
+            className="border-r-2 border-transparent hover:border-white px-3.5 pr-[16px] py-2"
+          />
+        </li>
+        <li onClick={() => setActiveComponent("docexport")} title="docexport">
+          <FontAwesomeIcon
+            icon={faFileArrowDown}
             style={{ color: "#ffffff" }}
             size="lg"
             className="border-r-2 border-transparent hover:border-white px-3.5 pr-[16px] py-2"

@@ -46,11 +46,17 @@ export default function Beds() {
 
   const handlePatientChange = async (bedId, newPatient) => {
     const bedDocRef = doc(db, "beds", bedId);
+    const occupiedValue = newPatient !== "";
     try {
-      await updateDoc(bedDocRef, { pacient: newPatient });
+      await updateDoc(bedDocRef, {
+        pacient: newPatient,
+        occupied: occupiedValue,
+      });
 
       const updatedBeds = beds.map((bed) =>
-        bed.id === bedId ? { ...bed, patient: newPatient } : bed
+        bed.id === bedId
+          ? { ...bed, patient: newPatient, occupied: occupiedValue }
+          : bed
       );
       setBeds(updatedBeds);
     } catch (error) {
