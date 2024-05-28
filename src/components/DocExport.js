@@ -1,16 +1,17 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import htmlDocx from 'html-docx-js/dist/html-docx';
-import { saveAs } from 'file-saver';
-import { db } from '../config/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import React, { useState, useEffect, useMemo } from "react";
+import htmlDocx from "html-docx-js/dist/html-docx";
+import { saveAs } from "file-saver";
+import { db } from "../config/firebase";
+import { collection, getDocs } from "firebase/firestore";
 
 export default function DocExport() {
-  const [documentType, setDocumentType] = useState('');
-  const [htmlContent, setHtmlContent] = useState('');
+  const [documentType, setDocumentType] = useState("");
   const [clients, setClients] = useState([]);
-  const [selectedClient, setSelectedClient] = useState('');
+  const [selectedClient, setSelectedClient] = useState("");
+  const [admissionDate, setAdmissionDate] = useState("");
+  const [procedure, setProcedure] = useState("");
 
-  const clientsCollectionRef = useMemo(() => collection(db, 'clients'), []);
+  const clientsCollectionRef = useMemo(() => collection(db, "clients"), []);
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -22,45 +23,149 @@ export default function DocExport() {
         }));
         setClients(clientsArray);
       } catch (error) {
-        console.error('Error fetching clients:', error);
+        console.error("Error fetching clients:", error);
       }
     };
 
     fetchClients();
   }, [clientsCollectionRef]);
 
+  const isValidDate = (dateString) => {
+    const regex = /^\d{2}\.\d{2}\.\d{4}$/;
+    if (!dateString.match(regex)) return false;
+
+    const [day, month, year] = dateString.split(".").map(Number);
+    const date = new Date(year, month - 1, day);
+    return (
+      date.getFullYear() === year &&
+      date.getMonth() + 1 === month &&
+      date.getDate() === day
+    );
+  };
+
   const templates = {
     deleteCustomerInfo: (client) => `
+    <head>
+      <style>
+      .header {
+        text-align: center;
+      }
+      .header img {
+        height: 87px;
+        width: 218px;
+      }
+      .signature-line {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+      }
+      .signature {
+        width: 50%;
+      }
+      .footer {
+        text-align: center;
+        margin-top: 50px;
+        line-height: 1.6;
+      }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <img src="file:///Users/andrewchris/Desktop/MACreactlicenta/src/assets/pogany.png" alt="Header Image"/>
+      </div>
       <h1>Request to Delete Customer Information</h1>
-      <p>Dear [Customer Service],</p>
-      <p>I am writing to request the deletion of my personal information from your records.</p>
+      <p>Dear Admin,</p>
+      <p>I, ${client.firstName} ${client.surname}, Social Security Number: ${client.ssn}, Birthdate: ${client.birthdate} request the deletion of my information from the database.</p>
       <p>Thank you,</p>
-      <p>${client.firstName} ${client.surname}</p>
-      <p>Social Security Number: ${client.ssn}</p>
-      <p>Phone: ${client.phone}</p>
-      <p>Email: ${client.email}</p>
-      <p>Birthdate: ${client.birthdate}</p>
-      <p>Gender: ${client.gender}</p>
-      <p>Health Problems: ${client.healthproblems}</p>
-      <p>Emergency Contact Phone: ${client.emerphone}</p>
-      <p>Emergency Contact Name: ${client.emername}</p>
+      <div class="signature-line">
+        <div class="signature">Signature of the clinic representative,</div>
+        <div class="signature" style="text-align: right;">Signature of the client,</div>
+      </div>
+      <div class="footer">
+        <p>Str. Mugur Mugurel, Nr. 4, Sector 3, Bucuresti, Romania</p>
+        <p>+40 722 394 222 | +40 799 873 774</p>
+        <p>office@clinicapogany.ro</p>
+        <p>Monday-Friday: 09:00 – 19:00</p>
+      </div>
+    </body>
     `,
     hospitalizationDocument: (client) => `
+    <head>
+      <style>
+      .header {
+        text-align: center;
+      }
+      .header img {
+        height: 87px;
+        width: 218px;
+      }
+      .footer {
+        text-align: center;
+        margin-top: 50px;
+        line-height: 1.6;
+      }
+      .signature-line {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+      }
+      .signature {
+        width: 50%;
+      }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <img src="file:///Users/andrewchris/Desktop/MACreactlicenta/src/assets/pogany.png" alt="Header Image"/>
+      </div>
       <h1>Hospitalization Document</h1>
-      <p>Patient Name: ${client.firstName} ${client.surname}</p>
-      <p>Date of Admission: [Date]</p>
-      <p>Diagnosis: [Diagnosis]</p>
-      <p>Treatment Plan: [Treatment Plan]</p>
-      <p>Social Security Number: ${client.ssn}</p>
-      <p>Phone: ${client.phone}</p>
-      <p>Email: ${client.email}</p>
-      <p>Birthdate: ${client.birthdate}</p>
-      <p>Gender: ${client.gender}</p>
+      <p>The patient ${client.firstName} ${client.surname}, Gender ${client.gender}, Birthdate ${client.birthdate}, SSN ${client.ssn}</p>
       <p>Health Problems: ${client.healthproblems}</p>
       <p>Emergency Contact Phone: ${client.emerphone}</p>
       <p>Emergency Contact Name: ${client.emername}</p>
+      <p>Date of Admission: ${admissionDate}</p>
+      <p>Procedure: ${procedure}</p>
+      <div class="signature-line">
+        <div class="signature">Signature of the clinic representative,</div>
+        <div class="signature" style="text-align: right;">Signature of the client,</div>
+      </div>
+      <div class="footer">
+        <p>Str. Mugur Mugurel, Nr. 4, Sector 3, Bucuresti, Romania</p>
+        <p>+40 722 394 222 | +40 799 873 774</p>
+        <p>office@clinicapogany.ro</p>
+        <p>Monday-Friday: 09:00 – 19:00</p>
+      </div>
+    </body>
     `,
     externalizationDocument: (client) => `
+    <head>
+      <style>
+      .header {
+        text-align: center;
+      }
+      .header img {
+        height: 87px;
+        width: 218px;
+      }
+      .footer {
+        text-align: center;
+        margin-top: 50px;
+        line-height: 1.6;
+      }
+      .signature-line {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+      }
+      .signature {
+        width: 50%;
+      }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <img src="file:///Users/andrewchris/Desktop/MACreactlicenta/src/assets/pogany.png" alt="Header Image"/>
+      </div>
       <h1>Externalization from Hospital Document</h1>
       <p>Patient Name: ${client.firstName} ${client.surname}</p>
       <p>Date of Discharge: [Date]</p>
@@ -74,6 +179,13 @@ export default function DocExport() {
       <p>Health Problems: ${client.healthproblems}</p>
       <p>Emergency Contact Phone: ${client.emerphone}</p>
       <p>Emergency Contact Name: ${client.emername}</p>
+      <div class="footer">
+        <p>Str. Mugur Mugurel, Nr. 4, Sector 3, Bucuresti, Romania</p>
+        <p>+40 722 394 222 | +40 799 873 774</p>
+        <p>office@clinicapogany.ro</p>
+        <p>Monday-Friday: 09:00 – 19:00</p>
+      </div>
+    </body>
     `,
   };
 
@@ -81,26 +193,30 @@ export default function DocExport() {
     const client = clients.find((c) => c.id === selectedClient);
     if (!client) return;
 
+    if (
+      documentType === "hospitalizationDocument" &&
+      !isValidDate(admissionDate)
+    ) {
+      alert("Please enter a valid date in the format DD.MM.YYYY.");
+      return;
+    }
+
     const content = templates[documentType](client);
     const converted = htmlDocx.asBlob(content);
-    saveAs(converted, `${documentType}.docx`);
+    saveAs(
+      converted,
+      `${documentType}_${client.firstName}_${client.surname}.docx`
+    );
   };
 
   const handleDocumentTypeChange = (e) => {
     setDocumentType(e.target.value);
-    setHtmlContent('');
-    setSelectedClient('');
+    setSelectedClient("");
   };
 
   const handleClientChange = (e) => {
     const clientId = e.target.value;
     setSelectedClient(clientId);
-    const client = clients.find((c) => c.id === clientId);
-    if (client) {
-      setHtmlContent(templates[documentType](client));
-    } else {
-      setHtmlContent('');
-    }
   };
 
   return (
@@ -122,9 +238,15 @@ export default function DocExport() {
             className="p-2 border rounded w-full"
           >
             <option value="">-- Select Document Type --</option>
-            <option value="deleteCustomerInfo">Delete Customer Information</option>
-            <option value="hospitalizationDocument">Hospitalization Document</option>
-            <option value="externalizationDocument">Externalization Document</option>
+            <option value="deleteCustomerInfo">
+              Delete Customer Information
+            </option>
+            <option value="hospitalizationDocument">
+              Hospitalization Document
+            </option>
+            <option value="externalizationDocument">
+              Externalization Document
+            </option>
           </select>
         </div>
         <div className="mb-4">
@@ -146,18 +268,36 @@ export default function DocExport() {
             ))}
           </select>
         </div>
-        <div className="mb-4">
-          <textarea
-            id="htmlContent"
-            value={htmlContent}
-            onChange={(e) => setHtmlContent(e.target.value)}
-            className="p-2 border rounded w-full h-64"
-            readOnly
-          ></textarea>
-        </div>
+        {documentType === "hospitalizationDocument" && selectedClient && (
+          <div className="mb-4">
+            <label htmlFor="admissionDate" className="block mb-2">
+              Date of Admission:
+            </label>
+            <input
+              type="date"
+              id="admissionDate"
+              value={admissionDate}
+              onChange={(e) => setAdmissionDate(e.target.value)}
+              className="p-2 border rounded w-full mb-4"
+            />
+            <label htmlFor="procedure" className="block mb-2">
+              Procedure:
+            </label>
+            <textarea
+              id="procedure"
+              value={procedure}
+              onChange={(e) => setProcedure(e.target.value)}
+              className="p-2 border rounded w-full h-24"
+            ></textarea>
+          </div>
+        )}
         <button
           onClick={handleExport}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          className={`${
+            !documentType || !selectedClient
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-blue-500 hover:bg-blue-700"
+          } text-white font-bold py-2 px-4 rounded`}
           disabled={!documentType || !selectedClient}
         >
           Download
