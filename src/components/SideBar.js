@@ -8,10 +8,14 @@ import {
   faFileArrowDown,
 } from "@fortawesome/free-solid-svg-icons";
 import "../index.css";
+import Logo from "../assets/LogoW.png";
 
-export default function SideBar({ setActiveComponent }) {
+export default function SideBar({ setActiveComponent, onLogout }) {
   return (
-    <div className="w-14 flex flex-col items-center align-middle bg-inherit shadow-[0_35px_60px_-15px_rgba(0,0,0,0.3)]">
+    <div className="w-[15%] flex flex-col items-center align-middle bg-inherit shadow-[0_35px_60px_-15px_rgba(0,0,0,0.3)]">
+        <div>
+          <img src={Logo} alt="Logo" className="ml-[1px] w-3/4" />
+        </div>
       <ul>
         <li
           onClick={() => setActiveComponent("userDetails")}

@@ -207,9 +207,6 @@ export default function UserDetails() {
 
   return (
     <div>
-      <h1 className="ml-1 font-bold border-b border-gray-200 h-12 flex items-center justify-start">
-        Client Information
-      </h1>
       <div className="flex h-12 border-b border-gray-200 items-center justify-normal">
         <div className="mx-auto">
           <select

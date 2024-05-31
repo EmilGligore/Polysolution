@@ -6,6 +6,7 @@ import {
   doc,
   addDoc,
   deleteDoc,
+  updateDoc
 } from "firebase/firestore";
 
 export default function Stock() {
@@ -65,7 +66,7 @@ export default function Stock() {
     if (id) {
       const itemDocRef = doc(db, "stock", id);
       try {
-        await itemDocRef.set({
+        await updateDoc(itemDocRef, {
           name: item.name,
           quantity: item.quantity,
         });
@@ -127,11 +128,6 @@ export default function Stock() {
 
   return (
     <div className="bg-white flex-grow">
-      <div className="flex justify-between items-center h-12 border-b border-gray-200">
-        <div className="text-lg font-bold ml-2 h-12 flex justify-between items-center">
-          Stock
-        </div>
-      </div>
       <table className="w-full">
         <thead>
           <tr className="border-b border-gray-200">

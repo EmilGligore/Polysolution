@@ -81,9 +81,6 @@ export default function Beds() {
 
   return (
     <div className="flex-grow">
-      <h1 className="flex font-bold border-b border-gray-200 h-12 justify-start items-center pl-1.5">
-        Beds Availability
-      </h1>
       <table className="h-12 border-b border-gray-200 w-full">
         <thead className="h-12 border-b border-gray-200">
           <tr className="h-12 border-b border-gray-200">
