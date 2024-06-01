@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faHospitalUser,
@@ -11,55 +11,129 @@ import "../index.css";
 import Logo from "../assets/LogoW.png";
 
 export default function SideBar({ setActiveComponent, onLogout }) {
+  const [activeItem, setActiveItem] = useState(null);
+
+  const handleItemClick = (component) => {
+    setActiveComponent(component);
+    setActiveItem(component);
+  };
+
   return (
-    <div className="w-[15%] flex flex-col items-center align-middle bg-inherit shadow-[0_35px_60px_-15px_rgba(0,0,0,0.3)]">
-        <div>
-          <img src={Logo} alt="Logo" className="ml-[1px] w-3/4" />
-        </div>
-      <ul>
-        <li
-          onClick={() => setActiveComponent("userDetails")}
-          title="User Details"
+    <div className="w-[15%] flex flex-col items-center align-middle bg-inherit shadow-[inset_-2px_0px_3px_-1px_rgba(23,37,84,0.5)]">
+      <div className="m-1">
+        <img src={Logo} alt="Logo" className="ml-[1px] h-[110%]" />
+      </div>
+      <ul className="w-full">
+        <div
+          className={`m-1 ${
+            activeItem === "userDetails" ? "bg-blue-900" : "hover:bg-blue-900"
+          } rounded`}
+          onClick={() => handleItemClick("userDetails")}
         >
-          <FontAwesomeIcon
-            icon={faUser}
-            style={{ color: "#ffffff" }}
-            size="lg"
-            className="border-r-2 border-transparent hover:border-white px-4 pl-5 pr-[17px] py-2"
-          />
-        </li>
-        <li onClick={() => setActiveComponent("schedule")} title="Schedule">
-          <FontAwesomeIcon
-            icon={faHospitalUser}
-            style={{ color: "#ffffff" }}
-            size="lg"
-            className="border-r-2 border-transparent hover:border-white px-4 py-2"
-          />
-        </li>
-        <li onClick={() => setActiveComponent("stock")} title="Stock">
-          <FontAwesomeIcon
-            icon={faBoxesStacked}
-            style={{ color: "#ffffff" }}
-            size="lg"
-            className="border-r-2 border-transparent hover:border-white px-4 py-2"
-          />
-        </li>
-        <li onClick={() => setActiveComponent("beds")} title="Beds">
-          <FontAwesomeIcon
-            icon={faBed}
-            style={{ color: "#ffffff" }}
-            size="lg"
-            className="border-r-2 border-transparent hover:border-white px-3.5 pr-[16px] py-2"
-          />
-        </li>
-        <li onClick={() => setActiveComponent("docexport")} title="docexport">
-          <FontAwesomeIcon
-            icon={faFileArrowDown}
-            style={{ color: "#ffffff" }}
-            size="lg"
-            className="border-r-2 border-transparent hover:border-white px-3.5 pr-[16px] py-2"
-          />
-        </li>
+          <li title="User Details" className="flex items-center py-2">
+            <FontAwesomeIcon
+              icon={faUser}
+              style={{ color: "#ffffff" }}
+              size="lg"
+              className="mr-2"
+            />
+            <span
+              className={`text-white ${
+                activeItem === "userDetails" ? "font-bold" : ""
+              } ml-3`}
+            >
+              Clients
+            </span>
+          </li>
+        </div>
+        <div
+          className={`m-1 ${
+            activeItem === "schedule" ? "bg-blue-900" : "hover:bg-blue-900"
+          } rounded`}
+          onClick={() => handleItemClick("schedule")}
+        >
+          <li title="Schedule" className="flex items-center py-2">
+            <FontAwesomeIcon
+              icon={faHospitalUser}
+              style={{ color: "#ffffff" }}
+              size="lg"
+              className="mr-2"
+            />
+            <span
+              className={`text-white ${
+                activeItem === "schedule" ? "font-bold" : ""
+              } ml-2`}
+            >
+              Appointments
+            </span>
+          </li>
+        </div>
+        <div
+          className={`m-1 ${
+            activeItem === "stock" ? "bg-blue-900" : "hover:bg-blue-900"
+          } rounded`}
+          onClick={() => handleItemClick("stock")}
+        >
+          <li title="Stock" className="flex items-center py-2">
+            <FontAwesomeIcon
+              icon={faBoxesStacked}
+              style={{ color: "#ffffff" }}
+              size="lg"
+              className="mr-2"
+            />
+            <span
+              className={`text-white ${
+                activeItem === "stock" ? "font-bold" : ""
+              } ml-2`}
+            >
+              Stock
+            </span>
+          </li>
+        </div>
+        <div
+          className={`m-1 ${
+            activeItem === "beds" ? "bg-blue-900" : "hover:bg-blue-900"
+          } rounded`}
+          onClick={() => handleItemClick("beds")}
+        >
+          <li title="Beds" className="flex items-center py-2">
+            <FontAwesomeIcon
+              icon={faBed}
+              style={{ color: "#ffffff" }}
+              size="lg"
+              className="mr-2"
+            />
+            <span
+              className={`text-white ${
+                activeItem === "beds" ? "font-bold" : ""
+              } ml-2`}
+            >
+              Beds
+            </span>
+          </li>
+        </div>
+        <div
+          className={`m-1 ${
+            activeItem === "docexport" ? "bg-blue-900" : "hover:bg-blue-900"
+          } rounded`}
+          onClick={() => handleItemClick("docexport")}
+        >
+          <li title="docexport" className="flex items-center py-2">
+            <FontAwesomeIcon
+              icon={faFileArrowDown}
+              style={{ color: "#ffffff" }}
+              size="lg"
+              className="mr-2"
+            />
+            <span
+              className={`text-white ${
+                activeItem === "docexport" ? "font-bold" : ""
+              } ml-4`}
+            >
+              Documents
+            </span>
+          </li>
+        </div>
       </ul>
     </div>
   );

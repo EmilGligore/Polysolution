@@ -30,7 +30,7 @@ export default function App() {
   return (
     <div
       id="App"
-      className="bg-gradient-to-r from-blue-800 via-blue-600 to-blue-500"
+      className="bg-gradient-to-r from-blue-800 via-blue-600 to-blue-500 h-screen w-screen overflow-hidden"
     >
       {isLoading ? (
         <div className="flex items-center justify-center h-screen">
@@ -38,7 +38,7 @@ export default function App() {
         </div>
       ) : isLoggedIn ? (
         <>
-          <Main onLogout={handleLogout}/>
+          <Main onLogout={handleLogout} />
         </>
       ) : (
         <Auth onLogin={handleLogin} />

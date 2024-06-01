@@ -44,11 +44,11 @@ export default function Main({ onLogout }) {
   };
 
   return (
-    <main className="flex h-screen w-full ">
+    <main className="flex h-screen w-full overflow-hidden">
       <SideBar setActiveComponent={setActiveComponent} />
-      <div className="flex-grow flex flex-col border border-inherit bg-white">
+      <div className="flex-grow flex flex-col bg-white">
         <NavBar onLogout={onLogout} title={getComponentTitle()} />
-        <div className="flex-grow">
+        <div className="flex-grow overflow-hidden">
           {renderComponent()}
         </div>
       </div>

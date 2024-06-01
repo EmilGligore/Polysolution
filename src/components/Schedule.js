@@ -277,7 +277,7 @@ export default function Schedule() {
           return { ...cabinet, documents: [...cabinet.documents, newDocument] };
         }
         return cabinet;
-      })
+      });
     });
   };
 
@@ -364,7 +364,12 @@ export default function Schedule() {
     );
   };
 
-  const validateAppointment = (cabinetName, docId, newStartTime, newEndTime) => {
+  const validateAppointment = (
+    cabinetName,
+    docId,
+    newStartTime,
+    newEndTime
+  ) => {
     const cabinet = cabinets.find((cabinet) => cabinet.name === cabinetName);
     const overlappingAppointment = cabinet.documents.some((doc) => {
       if (doc.id !== docId && doc.date === selectedDate) {
@@ -375,7 +380,12 @@ export default function Schedule() {
     return !overlappingAppointment;
   };
 
-  const handleInputChangeWithValidation = (cabinetName, docId, newValue, field) => {
+  const handleInputChangeWithValidation = (
+    cabinetName,
+    docId,
+    newValue,
+    field
+  ) => {
     const cabinet = cabinets.find((cabinet) => cabinet.name === cabinetName);
     const doc = cabinet.documents.find((doc) => doc.id === docId);
     const newStartTime = field === "startTime" ? newValue : doc.startTime;
@@ -392,14 +402,18 @@ export default function Schedule() {
   return (
     <div className="flex-grow">
       <div className="flex items-center justify-center border-b border-gray-200 h-12">
-        <button onClick={handlePrevDate}>{"<"}</button>
+        <div className="mr-2 hover:bg-gray-300 rounded-xl" onClick={handlePrevDate}>
+          <button onClick={handlePrevDate} className="mx-2">{"<"}</button>
+        </div>
         <input
           type="date"
           value={selectedDate}
           onChange={handleDateChange}
           className=""
         ></input>
-        <button onClick={handleNextDate}>{">"}</button>
+        <div className="ml-2 hover:bg-gray-300 rounded-xl" onClick={handleNextDate}>
+          <button onClick={handleNextDate} className="mx-2">{">"}</button>
+        </div>
       </div>
       {cabinets.map((cabinet) => (
         <div key={cabinet.name} className=" bg-white rounded">
