@@ -1,9 +1,12 @@
+// src/components/Auth.js
+
 import React, { useState } from "react";
 import "../index.css";
 import { auth } from "../config/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye } from "@fortawesome/free-solid-svg-icons";
+import { useNavigate } from "react-router-dom";
 import RecoverPassword from "./RecoverPassword";
 
 export default function Auth({ onLogin }) {
@@ -12,11 +15,22 @@ export default function Auth({ onLogin }) {
   const [error, setError] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [recoverPasswordMode, setRecoverPasswordMode] = useState(false);
+  const navigate = useNavigate();
 
   const logIn = async () => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      onLogin();
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      const userData = {
+        email: user.email,
+        uid: user.uid,
+      };
+      onLogin(userData);
+      if (user.email === "admin@admin.com" && user.uid === "xxzKmXE3cUSOagNvfY9yl9pnjwh2") {
+        navigate("/admin");
+      } else {
+        navigate("/components");
+      }
       setError(false);
     } catch (err) {
       console.error(err);
@@ -31,16 +45,9 @@ export default function Auth({ onLogin }) {
   return (
     <div className="flex flex-col items-center justify-center bg-BackgroundAuth w-screen h-screen">
       <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 w-96">
-        <h2 className="text-2xl font-bold mb-2 text-gray-800 text-center">
-          Welcome
-        </h2>
+        <h2 className="text-2xl font-bold mb-2 text-gray-800 text-center">Welcome</h2>
         <div className="mb-4">
-          <label
-            className="block text-gray-700 text-sm font-bold mb-2"
-            htmlFor="email"
-          >
-            Email
-          </label>
+          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">Email</label>
           <input
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             id="email"
@@ -50,12 +57,7 @@ export default function Auth({ onLogin }) {
           />
         </div>
         <div className="mb-2 relative">
-          <label
-            className="block text-gray-700 text-sm font-bold mb-2"
-            htmlFor="password"
-          >
-            Password
-          </label>
+          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">Password</label>
           <input
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             id="password"
@@ -76,11 +78,7 @@ export default function Auth({ onLogin }) {
             onClick={() => setShowPassword(!showPassword)}
           />
         </div>
-        <div
-          className={`text-red-500 text-sm mb-3 text-center items-center justify-center flex ${
-            error ? "" : "invisible"
-          }`}
-        >
+        <div className={`text-red-500 text-sm mb-3 text-center items-center justify-center flex ${error ? "" : "invisible"}`}>
           Email or password are incorrect!
         </div>
         <div className="flex items-center justify-between">

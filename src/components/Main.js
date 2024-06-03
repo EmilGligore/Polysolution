@@ -6,6 +6,7 @@ import Stock from "./Stock";
 import Beds from "./Beds";
 import DocExport from "./DocExport";
 import NavBar from "./NavBar";
+import Reports from "./Reports";
 
 export default function Main({ onLogout }) {
   const [activeComponent, setActiveComponent] = useState(null);
@@ -22,6 +23,8 @@ export default function Main({ onLogout }) {
         return <Beds />;
       case "docexport":
         return <DocExport />;
+      case "reports":
+        return <Reports />;
       default:
     }
   };
@@ -38,6 +41,8 @@ export default function Main({ onLogout }) {
         return "Beds Availability";
       case "docexport":
         return "Export Document";
+      case "reports":
+        return "Reports";
       default:
         return "Select an option from the sidebar";
     }
@@ -48,9 +53,7 @@ export default function Main({ onLogout }) {
       <SideBar setActiveComponent={setActiveComponent} />
       <div className="flex-grow flex flex-col bg-white">
         <NavBar onLogout={onLogout} title={getComponentTitle()} />
-        <div className="flex-grow overflow-hidden">
-          {renderComponent()}
-        </div>
+        <div className="flex-grow overflow-hidden">{renderComponent()}</div>
       </div>
     </main>
   );

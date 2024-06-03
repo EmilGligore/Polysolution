@@ -6,6 +6,7 @@ import {
   faBoxesStacked,
   faBed,
   faFileArrowDown,
+  faFileAlt
 } from "@fortawesome/free-solid-svg-icons";
 import "../index.css";
 import Logo from "../assets/LogoW.png";
@@ -131,6 +132,28 @@ export default function SideBar({ setActiveComponent, onLogout }) {
               } ml-4`}
             >
               Documents
+            </span>
+          </li>
+        </div>
+        <div
+          className={`m-1 ${
+            activeItem === "reports" ? "bg-blue-900" : "hover:bg-blue-900"
+          } rounded`}
+          onClick={() => handleItemClick("reports")}
+        >
+          <li title="reports" className="flex items-center py-2">
+            <FontAwesomeIcon
+              icon={faFileAlt}
+              style={{ color: "#ffffff" }}
+              size="lg"
+              className="mr-2"
+            />
+            <span
+              className={`text-white ${
+                activeItem === "reports" ? "font-bold" : ""
+              } ml-2`}
+            >
+              Reports
             </span>
           </li>
         </div>
