@@ -400,7 +400,7 @@ export default function Schedule() {
   };
 
   return (
-    <div className="flex-grow">
+    <div className="flex-grow overflow-auto">
       <div className="flex items-center justify-center border-b border-gray-200 h-12">
         <div className="mr-2 hover:bg-gray-300 rounded-xl" onClick={handlePrevDate}>
           <button onClick={handlePrevDate} className="mx-2">{"<"}</button>

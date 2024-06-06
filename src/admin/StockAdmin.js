@@ -127,100 +127,100 @@ export default function Stock() {
   };
 
   return (
-    <div className="bg-white flex-grow">
-      <table className="w-full">
-        <thead>
-          <tr className="border-b border-gray-200">
-            <th className="text-left p-2 h-12">Item</th>
-            <th className="text-left p-2 h-12">Quantity</th>
-            <th className="text-right p-2 h-12">
-              <button
-                onClick={addNewStock}
-                className="bg-blue-500 hover:bg-blue-700 rounded py-1 px-4 font-normal w-[148px] text-white"
-              >
-                + Add
-              </button>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {stock.map((item, index) => (
-            <tr
-              key={item.id || index}
-              className="border-b h-12"
-              onMouseEnter={() => setHoveredId(item.id)}
-              onMouseLeave={() => setHoveredId(null)}
+    <div className="bg-white flex-grow overflow-auto p-4 rounded shadow-md">
+  <table className="w-full border-collapse">
+    <thead>
+      <tr className="border-b border-gray-200">
+        <th className="text-left p-4 h-12 font-semibold text-gray-700">Item</th>
+        <th className="text-left p-4 h-12 font-semibold text-gray-700">Quantity</th>
+        <th className="text-right p-4 h-12">
+          <button
+            onClick={addNewStock}
+            className="bg-blue-500 hover:bg-blue-700 rounded py-2 px-6 font-semibold text-white"
+          >
+            + Add
+          </button>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      {stock.map((item, index) => (
+        <tr
+          key={item.id || index}
+          className="border-b border-gray-200 h-12 hover:bg-gray-100"
+          onMouseEnter={() => setHoveredId(item.id)}
+          onMouseLeave={() => setHoveredId(null)}
+        >
+          <td className="p-4">
+            <input
+              type="text"
+              value={item.name}
+              readOnly={!item.isEditable}
+              onChange={(e) =>
+                handleInputChange(item.id, "name", e.target.value)
+              }
+              className="bg-transparent w-full border-b border-dashed border-gray-400 focus:outline-none"
+              placeholder="Item..."
+            />
+          </td>
+          <td className="p-4">
+            <input
+              type="number"
+              value={item.quantity}
+              readOnly={!item.isEditable}
+              onChange={(e) =>
+                handleInputChange(item.id, "quantity", e.target.value)
+              }
+              className="bg-transparent w-full border-b border-dashed border-gray-400 focus:outline-none"
+              placeholder="Quantity..."
+            />
+          </td>
+          <td className="flex justify-end items-center p-4">
+            <div
+              className={`flex space-x-2 ${
+                hoveredId === item.id ? "" : "hidden"
+              }`}
             >
-              <td className="p-2">
-                <input
-                  type="text"
-                  value={item.name}
-                  readOnly={!item.isEditable}
-                  onChange={(e) =>
-                    handleInputChange(item.id, "name", e.target.value)
-                  }
-                  className="bg-transparent"
-                  placeholder="Item..."
-                />
-              </td>
-              <td className="p-2">
-                <input
-                  type="number"
-                  value={item.quantity}
-                  readOnly={!item.isEditable}
-                  onChange={(e) =>
-                    handleInputChange(item.id, "quantity", e.target.value)
-                  }
-                  className="bg-transparent w-full"
-                  placeholder="Quantity..."
-                />
-              </td>
-              <td className="flex justify-end items-center">
-                <div
-                  className={`flex ${hoveredId === item.id ? "" : "hidden"}`}
-                >
-                  <button
-                    onClick={() => toggleEdit(item.id)}
-                    className={`${
-                      item.isEdited
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-blue-500 hover:bg-blue-700"
-                    } py-1 px-4 m-1 rounded text-white`}
-                    style={{ width: "70px" }}
-                    disabled={item.isEdited}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleSave(item.id)}
-                    className={`${
-                      item.isEditable
-                        ? "bg-blue-500 hover:bg-green-500"
-                        : "bg-gray-400 cursor-not-allowed"
-                    } py-1 px-4 m-1 rounded text-white`}
-                    style={{ width: "70px" }}
-                    disabled={!item.isEditable}
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => deleteStockItem(item.id)}
-                    className={`${
-                      item.isEdited
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-blue-500 hover:bg-red-500"
-                    } py-1 m-1 mr-2 rounded text-white`}
-                    style={{ width: "70px" }}
-                    disabled={item.isEdited}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+              <button
+                onClick={() => toggleEdit(item.id)}
+                className={`${
+                  item.isEdited
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-blue-500 hover:bg-blue-700"
+                } py-1 px-4 rounded text-white`}
+                disabled={item.isEdited}
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleSave(item.id)}
+                className={`${
+                  item.isEditable
+                    ? "bg-green-500 hover:bg-green-700"
+                    : "bg-gray-400 cursor-not-allowed"
+                } py-1 px-4 rounded text-white`}
+                disabled={!item.isEditable}
+              >
+                Save
+              </button>
+              <button
+                onClick={() => deleteStockItem(item.id)}
+                className={`${
+                  item.isEdited
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-red-500 hover:bg-red-700"
+                } py-1 px-4 rounded text-white`}
+                disabled={item.isEdited}
+              >
+                Delete
+              </button>
+            </div>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
   );
 }

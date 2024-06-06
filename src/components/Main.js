@@ -7,6 +7,7 @@ import Beds from "./Beds";
 import DocExport from "./DocExport";
 import NavBar from "./NavBar";
 import Reports from "./Reports";
+import EmployeeForm from "./EmployeeForm"
 
 export default function Main({ onLogout }) {
   const [activeComponent, setActiveComponent] = useState(null);
@@ -25,6 +26,8 @@ export default function Main({ onLogout }) {
         return <DocExport />;
       case "reports":
         return <Reports />;
+      case "employeeform":
+        return <EmployeeForm />;
       default:
     }
   };
@@ -43,6 +46,8 @@ export default function Main({ onLogout }) {
         return "Export Document";
       case "reports":
         return "Reports";
+      case "employeeform":
+        return "Schedule";
       default:
         return "Select an option from the sidebar";
     }

@@ -6,7 +6,8 @@ import {
   faBoxesStacked,
   faBed,
   faFileArrowDown,
-  faFileAlt
+  faFileAlt,
+  faCalendarDays
 } from "@fortawesome/free-solid-svg-icons";
 import "../index.css";
 import Logo from "../assets/LogoW.png";
@@ -154,6 +155,28 @@ export default function SideBar({ setActiveComponent, onLogout }) {
               } ml-2`}
             >
               Reports
+            </span>
+          </li>
+        </div>
+        <div
+          className={`m-1 ${
+            activeItem === "employeeform" ? "bg-blue-900" : "hover:bg-blue-900"
+          } rounded`}
+          onClick={() => handleItemClick("employeeform")}
+        >
+          <li title="employeeform" className="flex items-center py-2">
+            <FontAwesomeIcon
+              icon={faCalendarDays}
+              style={{ color: "#ffffff" }}
+              size="lg"
+              className="mr-2"
+            />
+            <span
+              className={`text-white ${
+                activeItem === "employeeform" ? "font-bold" : ""
+              } ml-2`}
+            >
+              Schedule
             </span>
           </li>
         </div>

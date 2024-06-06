@@ -1,5 +1,3 @@
-// src/admin/Admin.js
-
 import React, { useState } from "react";
 import SideBarAdmin from "./SideBarAdmin";
 import ScheduleAdmin from "./ScheduleAdmin";
@@ -8,6 +6,8 @@ import StockAdmin from "./StockAdmin";
 import BedsAdmin from "./BedsAdmin";
 import DocExportAdmin from "./DocExportAdmin";
 import NavBarAdmin from "./NavBarAdmin";
+import ReportsAdmin from "./ReportsAdmin";
+import EmployeeForm from "./EmployeeForm";
 
 export default function Admin({ onLogout }) {
   const [activeComponent, setActiveComponent] = useState(null);
@@ -24,6 +24,10 @@ export default function Admin({ onLogout }) {
         return <BedsAdmin />;
       case "docexport":
         return <DocExportAdmin />;
+      case "reports":
+        return <ReportsAdmin />;
+      case "employeeform":
+        return <EmployeeForm />;
       default:
         return <div>Select an option from the sidebar</div>;
     }
@@ -33,7 +37,7 @@ export default function Admin({ onLogout }) {
     <main className="flex h-screen w-full">
       <SideBarAdmin setActiveComponent={setActiveComponent} />
       <div className="flex-grow flex flex-col bg-white">
-      <NavBarAdmin onLogout={onLogout} />
+        <NavBarAdmin onLogout={onLogout} />
 
         {renderComponent()}
       </div>
