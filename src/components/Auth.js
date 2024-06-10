@@ -1,13 +1,15 @@
 import React, { useState } from "react";
 import "../index.css";
-import { auth } from "../config/firebase";
+import { auth, db } from "../config/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 import RecoverPassword from "./RecoverPassword";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function Auth({ onLogin }) {
+  // State to manage email, password, error state, password visibility, and recover password mode
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
@@ -15,6 +17,7 @@ export default function Auth({ onLogin }) {
   const [recoverPasswordMode, setRecoverPasswordMode] = useState(false);
   const navigate = useNavigate();
 
+  // Function to handle login
   const logIn = async () => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -23,12 +26,22 @@ export default function Auth({ onLogin }) {
         email: user.email,
         uid: user.uid,
       };
-      onLogin(userData);
-      if (user.email === "admin@admin.com" && user.uid === "xxzKmXE3cUSOagNvfY9yl9pnjwh2") {
+
+      const employeeDoc = await getDoc(doc(db, "employees", user.uid));
+      if (user.email === "admin@admin.com") {
+        userData.role = "admin";
         navigate("/admin");
+      } else if (employeeDoc.exists()) {
+        userData.role = "doctor";
+        navigate("/employee");
       } else {
+        userData.role = "user";
         navigate("/components");
       }
+      
+      localStorage.setItem("loggedIn", "true");
+      localStorage.setItem("user", JSON.stringify(userData));
+      onLogin(userData);
       setError(false);
     } catch (err) {
       console.error(err);
@@ -36,10 +49,12 @@ export default function Auth({ onLogin }) {
     }
   };
 
+  // Render RecoverPassword component if in recover password mode
   if (recoverPasswordMode) {
     return <RecoverPassword onBack={() => setRecoverPasswordMode(false)} />;
   }
 
+  // Render login form
   return (
     <div className="flex flex-col items-center justify-center bg-BackgroundAuth w-screen h-screen">
       <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 w-96">

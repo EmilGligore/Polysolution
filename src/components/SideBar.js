@@ -7,14 +7,16 @@ import {
   faBed,
   faFileArrowDown,
   faFileAlt,
-  faCalendarDays
+  faCalendarDays,
 } from "@fortawesome/free-solid-svg-icons";
 import "../index.css";
 import Logo from "../assets/LogoW.png";
 
 export default function SideBar({ setActiveComponent, onLogout }) {
+  // State to manage the active item in the sidebar
   const [activeItem, setActiveItem] = useState(null);
 
+  // Function to handle item click in the sidebar
   const handleItemClick = (component) => {
     setActiveComponent(component);
     setActiveItem(component);

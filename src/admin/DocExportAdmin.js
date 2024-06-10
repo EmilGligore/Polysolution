@@ -1,20 +1,23 @@
-import React, { useState, useEffect, useMemo } from "react";
-import htmlDocx from "html-docx-js/dist/html-docx";
-import { saveAs } from "file-saver";
-import { db } from "../config/firebase";
-import { collection, getDocs } from "firebase/firestore";
+import React, { useState, useEffect, useMemo } from "react"; // Import React and necessary hooks
+import htmlDocx from "html-docx-js/dist/html-docx"; // Import htmlDocx for converting HTML to DOCX
+import { saveAs } from "file-saver"; // Import file-saver for saving files
+import { db } from "../config/firebase"; // Import Firebase configuration
+import { collection, getDocs } from "firebase/firestore"; // Import Firestore functions
 
+// Main component for document export
 export default function DocExport() {
-  const [documentType, setDocumentType] = useState("");
-  const [clients, setClients] = useState([]);
-  const [selectedClient, setSelectedClient] = useState("");
-  const [admissionDate, setAdmissionDate] = useState("");
-  const [procedure, setProcedure] = useState("");
-  const [dischargeDate, setDischargeDate] = useState("");
-  const [followUpPlan, setFollowUpPlan] = useState("");
+  const [documentType, setDocumentType] = useState(""); // State to track selected document type
+  const [clients, setClients] = useState([]); // State to store list of clients
+  const [selectedClient, setSelectedClient] = useState(""); // State to track selected client
+  const [admissionDate, setAdmissionDate] = useState(""); // State to store admission date
+  const [procedure, setProcedure] = useState(""); // State to store procedure
+  const [dischargeDate, setDischargeDate] = useState(""); // State to store discharge date
+  const [followUpPlan, setFollowUpPlan] = useState(""); // State to store follow-up plan
 
+  // Memoized reference to the Firestore collection "clients"
   const clientsCollectionRef = useMemo(() => collection(db, "clients"), []);
 
+  // Fetch clients from Firestore when the component mounts
   useEffect(() => {
     const fetchClients = async () => {
       try {
@@ -23,7 +26,7 @@ export default function DocExport() {
           id: doc.id,
           ...doc.data(),
         }));
-        setClients(clientsArray);
+        setClients(clientsArray); // Update state with fetched clients
       } catch (error) {
         console.error("Error fetching clients:", error);
       }
@@ -32,6 +35,7 @@ export default function DocExport() {
     fetchClients();
   }, [clientsCollectionRef]);
 
+  // Validate date format
   const isValidDate = (dateString) => {
     const regex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateString.match(regex)) return false;
@@ -44,6 +48,7 @@ export default function DocExport() {
     return dateString === date.toISOString().split("T")[0];
   };
 
+  // Templates for different document types
   const templates = {
     deleteCustomerInfo: (client) => `
     <head>
@@ -188,6 +193,7 @@ export default function DocExport() {
     `,
   };
 
+  // Handle export action for documents
   const handleExport = () => {
     const client = clients.find((c) => c.id === selectedClient);
     if (!client) return;
@@ -210,16 +216,19 @@ export default function DocExport() {
     );
   };
 
+  // Handle document type change
   const handleDocumentTypeChange = (e) => {
     setDocumentType(e.target.value);
     setSelectedClient("");
   };
 
+  // Handle client selection change
   const handleClientChange = (e) => {
     const clientId = e.target.value;
     setSelectedClient(clientId);
   };
 
+  // JSX to render the document export form
   return (
     <div className="bg-white flex-grow">
       <div className="p-4">

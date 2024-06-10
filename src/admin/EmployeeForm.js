@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { auth, db } from "../config/firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { collection, getDocs, doc, setDoc, deleteDoc, writeBatch, query, where } from "firebase/firestore";
+import React, { useState, useEffect, useMemo } from "react"; // Import React and necessary hooks
+import { auth, db } from "../config/firebase"; // Import Firebase configuration for authentication and database
+import { createUserWithEmailAndPassword } from "firebase/auth"; // Import Firebase authentication function
+import { collection, getDocs, doc, setDoc, deleteDoc, writeBatch, query, where } from "firebase/firestore"; // Import Firestore functions
 
+// Main component for employee scheduling
 export default function EmployeeScheduling() {
+  // State variables to manage form inputs and data
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -14,9 +16,11 @@ export default function EmployeeScheduling() {
   const [viewDate, setViewDate] = useState("");
   const [employeesOnDate, setEmployeesOnDate] = useState([]);
 
+  // Memoized references to Firestore collections
   const employeesCollection = useMemo(() => collection(db, "employees"), []);
   const schedulesCollection = useMemo(() => collection(db, "schedules"), []);
 
+  // Fetch employees from Firestore when the component mounts
   useEffect(() => {
     const fetchEmployees = async () => {
       const employeesSnapshot = await getDocs(employeesCollection);
@@ -24,14 +28,15 @@ export default function EmployeeScheduling() {
         id: doc.id,
         ...doc.data(),
       }));
-      setEmployees(employeesList);
+      setEmployees(employeesList); // Update state with fetched employees
     };
 
     fetchEmployees();
   }, [employeesCollection]);
 
+  // Handle creating a new employee
   const handleCreateEmployee = async (event) => {
-    event.preventDefault();
+    event.preventDefault(); // Prevent form from submitting normally
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
@@ -52,23 +57,24 @@ export default function EmployeeScheduling() {
         id: doc.id,
         ...doc.data(),
       }));
-      setEmployees(employeesList);
+      setEmployees(employeesList); // Refresh the list of employees
     } catch (error) {
       console.error("Error creating employee: ", error);
       alert(error.message);
     }
   };
 
+  // Handle deleting an employee
   const handleDeleteEmployee = async (event) => {
-    event.preventDefault();
+    event.preventDefault(); // Prevent form from submitting normally
     try {
       const employeeToDelete = employees.find(emp => emp.id === selectedEmployee);
       const { firstName, lastName } = employeeToDelete;
 
       const userDocRef = doc(db, "employees", selectedEmployee);
-      await deleteDoc(userDocRef);
+      await deleteDoc(userDocRef); // Delete employee document from Firestore
 
-      const batch = writeBatch(db);
+      const batch = writeBatch(db); // Batch operations for Firestore
       const schedulesSnapshot = await getDocs(schedulesCollection);
 
       for (const scheduleDoc of schedulesSnapshot.docs) {
@@ -77,11 +83,11 @@ export default function EmployeeScheduling() {
         const employeeDocs = await getDocs(q);
 
         employeeDocs.forEach((employeeDoc) => {
-          batch.delete(employeeDoc.ref);
+          batch.delete(employeeDoc.ref); // Delete related schedule documents
         });
       }
 
-      await batch.commit();
+      await batch.commit(); // Commit the batch operations
 
       alert("Employee deleted successfully!");
       setSelectedEmployee("");
@@ -91,15 +97,16 @@ export default function EmployeeScheduling() {
         id: doc.id,
         ...doc.data(),
       }));
-      setEmployees(employeesList);
+      setEmployees(employeesList); // Refresh the list of employees
     } catch (error) {
       console.error("Error deleting employee: ", error);
       alert(error.message);
     }
   };
 
+  // Handle scheduling an employee on a specific date
   const handleScheduleChange = async (event) => {
-    event.preventDefault();
+    event.preventDefault(); // Prevent form from submitting normally
     if (!selectedDate || !selectedEmployee) {
       alert("Please select a date and an employee.");
       return;
@@ -125,6 +132,7 @@ export default function EmployeeScheduling() {
     }
   };
 
+  // Handle viewing employees scheduled on a specific date
   const handleViewDateChange = async (e) => {
     setViewDate(e.target.value);
     const [year, month, day] = e.target.value.split("-");
@@ -139,9 +147,10 @@ export default function EmployeeScheduling() {
       id: doc.id,
       ...doc.data(),
     }));
-    setEmployeesOnDate(employeesList);
+    setEmployeesOnDate(employeesList); // Update state with employees scheduled on the selected date
   };
 
+  // Handle removing an employee from the schedule on a specific date
   const handleDeleteFromSchedule = async (employeeId) => {
     const [year, month, day] = viewDate.split("-");
     const scheduleRef = doc(
@@ -151,10 +160,22 @@ export default function EmployeeScheduling() {
       "employees",
       employeeId
     );
-    await deleteDoc(scheduleRef);
-    handleViewDateChange({ target: { value: viewDate } });
+    await deleteDoc(scheduleRef); // Delete the schedule document from Firestore
+    handleViewDateChange({ target: { value: viewDate } }); // Refresh the list of employees on the selected date
   };
 
+  // Function to handle first and last name input change with validation
+  const handleNameChange = (setter) => (event) => {
+    const { value } = event.target;
+    const lettersOnly = /^[A-Za-z\s]*$/;
+    if (lettersOnly.test(value)) {
+      setter(value);
+    } else {
+      alert("Only letters are allowed for First Name and Last Name.");
+    }
+  };
+
+  // JSX to render the employee scheduling form and list
   return (
     <div className="container mx-auto p-4 overflow-auto">
       <h2 className="text-2xl font-bold mb-4">Create Employee</h2>
@@ -183,7 +204,7 @@ export default function EmployeeScheduling() {
           <input
             type="text"
             value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
+            onChange={handleNameChange(setFirstName)}
             placeholder="First Name"
             required
             className="w-full p-2 border rounded"
@@ -193,7 +214,7 @@ export default function EmployeeScheduling() {
           <input
             type="text"
             value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
+            onChange={handleNameChange(setLastName)}
             placeholder="Last Name"
             required
             className="w-full p-2 border rounded"

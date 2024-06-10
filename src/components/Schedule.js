@@ -10,8 +10,11 @@ import {
 } from "firebase/firestore";
 
 export default function Schedule() {
+  // State to manage cabinets data
   const [cabinets, setCabinets] = useState([]);
+  // State to manage clients data
   const [clients, setClients] = useState([]);
+  // State to manage the selected date
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
     const day = String(today.getDate()).padStart(2, "0");
@@ -19,8 +22,10 @@ export default function Schedule() {
     const year = today.getFullYear();
     return `${year}-${month}-${day}`;
   });
+  // State to manage the hovered document ID
   const [hoveredDocId, setHoveredDocId] = useState(null);
 
+  // Memoize the references to the 'cabinets' collections to avoid unnecessary re-renders
   const cabinetCollections = useMemo(() => {
     return ["Cabinet 1", "Cabinet 2", "Cabinet 3"].map((cabinetName) => ({
       name: cabinetName,
@@ -28,8 +33,10 @@ export default function Schedule() {
     }));
   }, []);
 
+  // Memoize the reference to the 'clients' collection to avoid unnecessary re-renders
   const clientsCollectionRef = useMemo(() => collection(db, "clients"), []);
 
+  // Fetch cabinets and clients data from Firestore when the component mounts
   useEffect(() => {
     const fetchCabinetContents = async () => {
       const fetchedCabinets = await Promise.all(
@@ -70,10 +77,12 @@ export default function Schedule() {
     fetchClients();
   }, [cabinetCollections, clientsCollectionRef]);
 
+  // Handle date change
   const handleDateChange = (e) => {
     setSelectedDate(e.target.value);
   };
 
+  // Handle saving a document
   const handleSave = async (cabinetName, docId) => {
     const cabinet = cabinets.find((cabinet) => cabinet.name === cabinetName);
     const docToUpdate = cabinet.documents.find((doc) => doc.id === docId);
@@ -129,6 +138,7 @@ export default function Schedule() {
     );
   };
 
+  // Handle edit button click
   const handleEditButton = (cabinetName, docId) => {
     setCabinets((cabinets) =>
       cabinets.map((cabinet) => {
@@ -153,6 +163,7 @@ export default function Schedule() {
     );
   };
 
+  // Handle input change
   const handleInputChange = (cabinetName, docId, newValue, field) => {
     const lettersOnly = /^[A-Za-z\s]*$/;
     if (
@@ -205,6 +216,7 @@ export default function Schedule() {
     );
   };
 
+  // Mark document as not new
   const markDocumentAsNotNew = (cabinetName, docId) => {
     setCabinets((cabinets) =>
       cabinets.map((cabinet) => {
@@ -224,28 +236,11 @@ export default function Schedule() {
     );
   };
 
-  const handleToggleEditable = (cabinetName, docId) => {
-    setCabinets((cabinets) =>
-      cabinets.map((cabinet) => {
-        if (cabinet.name === cabinetName) {
-          return {
-            ...cabinet,
-            documents: cabinet.documents.map((doc) => {
-              if (doc.id === docId) {
-                return { ...doc, isEditable: !doc.isEditable };
-              }
-              return doc;
-            }),
-          };
-        }
-        return cabinet;
-      })
-    );
-  };
-
+  // Generate unique ID for new documents
   const generateUniqueId = () =>
     `id-${Math.random().toString(36).substr(2, 9)}`;
 
+  // Add new document to cabinet
   const addNewDocumentToCabinet = (cabinetName) => {
     const today = new Date();
     const selectedDateObj = new Date(selectedDate);
@@ -281,6 +276,7 @@ export default function Schedule() {
     });
   };
 
+  // Handle deleting a document
   const handleDelete = async (cabinetName, docId) => {
     const docRef = doc(db, "cabinets", "cabinets", cabinetName, docId);
     try {
@@ -302,61 +298,35 @@ export default function Schedule() {
     }
   };
 
-  const handleAddNewDocument = (cabinetName) => {
-    const today = new Date();
-    const selectedDateObj = new Date(selectedDate);
-    const maxFutureDate = new Date(today);
-    maxFutureDate.setDate(today.getDate() + 30);
-
-    if (selectedDateObj < today || selectedDateObj > maxFutureDate) {
-      alert("Appointments can only be scheduled within 30 days from today.");
-      return;
-    }
-
-    setCabinets((cabinets) =>
-      cabinets.map((cabinet) => {
-        if (cabinet.name === cabinetName) {
-          const newDocument = {
-            id: generateUniqueId(),
-            startTime: "",
-            endTime: "",
-            name: "",
-            procedure: "",
-            doctor: "",
-            isEditable: true,
-            isNew: true,
-            date: selectedDate,
-          };
-          return { ...cabinet, documents: [...cabinet.documents, newDocument] };
-        }
-        return cabinet;
-      })
-    );
-  };
-
+  // Check if a form is filled
   const isFormFilled = (doc) => {
     return (
       doc.startTime && doc.endTime && doc.name && doc.procedure && doc.doctor
     );
   };
 
+  // Check if the selected date is before today
   const isBeforeToday =
     new Date(selectedDate) < new Date().setHours(0, 0, 0, 0);
+  // Check if the selected date is after 30 days from today
   const isAfter30DaysFromToday =
     new Date(selectedDate) > new Date().setDate(new Date().getDate() + 30);
 
+  // Handle previous date navigation
   const handlePrevDate = () => {
     const prevDate = new Date(selectedDate);
     prevDate.setDate(prevDate.getDate() - 1);
     setSelectedDate(prevDate.toISOString().split("T")[0]);
   };
 
+  // Handle next date navigation
   const handleNextDate = () => {
     const nextDate = new Date(selectedDate);
     nextDate.setDate(nextDate.getDate() + 1);
     setSelectedDate(nextDate.toISOString().split("T")[0]);
   };
 
+  // Check for overlapping appointments
   const hasOverlap = (startTime1, endTime1, startTime2, endTime2) => {
     return (
       (startTime1 < endTime2 && startTime2 < endTime1) ||
@@ -364,6 +334,7 @@ export default function Schedule() {
     );
   };
 
+  // Validate appointment times
   const validateAppointment = (
     cabinetName,
     docId,
@@ -380,6 +351,7 @@ export default function Schedule() {
     return !overlappingAppointment;
   };
 
+  // Handle input change with validation
   const handleInputChangeWithValidation = (
     cabinetName,
     docId,
@@ -402,8 +374,13 @@ export default function Schedule() {
   return (
     <div className="flex-grow overflow-auto">
       <div className="flex items-center justify-center border-b border-gray-200 h-12">
-        <div className="mr-2 hover:bg-gray-300 rounded-xl" onClick={handlePrevDate}>
-          <button onClick={handlePrevDate} className="mx-2">{"<"}</button>
+        <div
+          className="mr-2 hover:bg-gray-300 rounded-xl"
+          onClick={handlePrevDate}
+        >
+          <button onClick={handlePrevDate} className="mx-2">
+            {"<"}
+          </button>
         </div>
         <input
           type="date"
@@ -411,8 +388,13 @@ export default function Schedule() {
           onChange={handleDateChange}
           className=""
         ></input>
-        <div className="ml-2 hover:bg-gray-300 rounded-xl" onClick={handleNextDate}>
-          <button onClick={handleNextDate} className="mx-2">{">"}</button>
+        <div
+          className="ml-2 hover:bg-gray-300 rounded-xl"
+          onClick={handleNextDate}
+        >
+          <button onClick={handleNextDate} className="mx-2">
+            {">"}
+          </button>
         </div>
       </div>
       {cabinets.map((cabinet) => (

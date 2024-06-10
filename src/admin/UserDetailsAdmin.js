@@ -1,14 +1,9 @@
-import "../index.css";
-import React, { useState, useEffect, useMemo } from "react";
-import { db } from "../config/firebase";
-import {
-  getDocs,
-  collection,
-  doc,
-  updateDoc,
-  addDoc,
-} from "firebase/firestore";
+import "../index.css"; // Import the main stylesheet for styling the components
+import React, { useState, useEffect, useMemo } from "react"; // Import React and necessary hooks
+import { db } from "../config/firebase"; // Import Firebase configuration
+import { getDocs, collection, doc, updateDoc, addDoc } from "firebase/firestore"; // Import Firestore functions
 
+// Initial state for form data
 const initialFormData = {
   firstName: "",
   surname: "",
@@ -23,15 +18,18 @@ const initialFormData = {
   gdpr: false,
 };
 
+// Main component for managing user details
 export default function UserDetails() {
-  const [clientsList, setClientsList] = useState([]);
-  const [isAddingClient, setIsAddingClient] = useState(false);
-  const [showNewInfo, setShowNewInfo] = useState(false);
-  const [selectedOptionIndex, setSelectedOptionIndex] = useState(0);
-  const [formData, setFormData] = useState(initialFormData);
+  const [clientsList, setClientsList] = useState([]); // State to store list of clients
+  const [isAddingClient, setIsAddingClient] = useState(false); // State to track if a new client is being added
+  const [showNewInfo, setShowNewInfo] = useState(false); // State to toggle form display
+  const [selectedOptionIndex, setSelectedOptionIndex] = useState(0); // State to track selected client index
+  const [formData, setFormData] = useState(initialFormData); // State to manage form data
 
+  // Memoized reference to the Firestore collection "clients"
   const clientsCollectionRef = useMemo(() => collection(db, "clients"), []);
 
+  // Fetch client list from Firestore when the component mounts
   useEffect(() => {
     const getClientsList = async () => {
       try {
@@ -55,6 +53,7 @@ export default function UserDetails() {
     getClientsList();
   }, [clientsCollectionRef]);
 
+  // Convert Firestore timestamp to date string
   function timestampToDate(input) {
     if (typeof input === "string") {
       return input;
@@ -75,9 +74,14 @@ export default function UserDetails() {
     }
   }
 
+  // Handle save action for client data
   const handleSave = async () => {
     if (selectedOptionIndex > 0) {
-      const clientDocRef = doc(db, "clients", clientsList[selectedOptionIndex - 1].id);
+      const clientDocRef = doc(
+        db,
+        "clients",
+        clientsList[selectedOptionIndex - 1].id
+      );
       try {
         if (!isFormValid()) {
           alert("Please fill out all fields correctly before saving.");
@@ -96,6 +100,7 @@ export default function UserDetails() {
     }
   };
 
+  // Refresh client list from Firestore
   const refreshClientsList = async () => {
     const data = await getDocs(clientsCollectionRef);
     const filteredData = data.docs.map((doc) => ({
@@ -108,6 +113,7 @@ export default function UserDetails() {
     setClientsList(filteredData);
   };
 
+  // Validate form data
   const isFormValid = () => {
     const namePattern = /^[A-Za-z]{1,12}$/;
     const ssnPattern = /^\d{1,15}$/;
@@ -130,6 +136,7 @@ export default function UserDetails() {
     );
   };
 
+  // Handle adding a new client
   const handleAddNewClient = async () => {
     if (!isFormValid()) {
       alert("Please fill out all fields correctly before saving.");
@@ -151,6 +158,7 @@ export default function UserDetails() {
     setIsAddingClient(false);
   };
 
+  // Handle client selection change
   const changeOption = (index) => {
     setSelectedOptionIndex(index);
     setIsAddingClient(false);
@@ -176,18 +184,22 @@ export default function UserDetails() {
     }
   };
 
+  // Reset form data to initial state
   const resetFormData = () => {
     setFormData(initialFormData);
   };
 
+  // Enable editing of client data
   const handleEdit = () => {
     setShowNewInfo(true);
   };
 
+  // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     let newValue = value;
 
+    // Validation and formatting based on input field
     if (name === "firstName" || name === "surname" || name === "emername") {
       newValue = newValue
         .replace(/[^A-Za-z\s]/g, "")
@@ -204,6 +216,7 @@ export default function UserDetails() {
     }));
   };
 
+  // JSX to render the user details form
   return (
     <div className="p-6 bg-white shadow-md rounded-md overflow-auto">
       <div className="flex justify-between items-center mb-4">

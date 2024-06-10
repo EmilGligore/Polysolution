@@ -3,18 +3,22 @@ import { db } from "../config/firebase";
 import {
   collection,
   getDocs,
-  deleteDoc,
   doc,
   updateDoc,
 } from "firebase/firestore";
 
 export default function BedsAdmin() {
+  // State to manage the list of beds
   const [beds, setBeds] = useState([]);
+  // State to manage the list of clients
   const [clients, setClients] = useState([]);
 
+  // Memoize the reference to the 'beds' collection to avoid unnecessary re-renders
   const bedsCollectionRef = useMemo(() => collection(db, "beds"), []);
+  // Memoize the reference to the 'clients' collection to avoid unnecessary re-renders
   const clientsCollectionRef = useMemo(() => collection(db, "clients"), []);
 
+  // Function to fetch bed data from Firestore
   const fetchBeds = useCallback(async () => {
     const querySnapshot = await getDocs(bedsCollectionRef);
     const bedsArray = querySnapshot.docs
@@ -24,12 +28,14 @@ export default function BedsAdmin() {
         occupied: doc.data().occupied,
         number: parseInt(doc.data().number, 10),
       }))
-      .sort((a, b) => a.number - b.number);
+      .sort((a, b) => a.number - b.number); // Sort beds by bed number
     setBeds(bedsArray);
   }, [bedsCollectionRef]);
 
+  // useEffect to fetch bed and client data when the component mounts
   useEffect(() => {
-    fetchBeds();
+    fetchBeds(); // Fetch beds on mount
+    // Function to fetch client data from Firestore
     const fetchClients = async () => {
       const querySnapshot = await getDocs(clientsCollectionRef);
       const clientsArray = querySnapshot.docs.map((doc) => ({
@@ -38,26 +44,23 @@ export default function BedsAdmin() {
       }));
       setClients(clientsArray);
     };
-    fetchClients();
+    fetchClients(); // Fetch clients on mount
   }, [bedsCollectionRef, clientsCollectionRef, fetchBeds]);
 
-  const handleDeleteBed = async (bedId) => {
-    await deleteDoc(doc(db, "beds", bedId));
-    fetchBeds();
-  };
-
+  // Function to handle patient change for a bed
   const handlePatientChange = async (bedId, newPatient) => {
     const bedDocRef = doc(db, "beds", bedId);
-    const occupiedValue = newPatient !== "";
+    const occupiedValue = newPatient !== ""; // Determine if the bed is occupied
     await updateDoc(bedDocRef, {
       pacient: newPatient,
       occupied: occupiedValue,
     });
-    fetchBeds();
+    fetchBeds(); // Refresh the list of beds after updating
   };
 
+  // Render the component
   return (
-    <div className="flex-grow overflow-y-scroll p-4">
+    <div className="flex-grow overflow-y-scroll p-4 overflow-auto">
       <div className="max-h-screen overflow-y-auto">
         <table className="w-full bg-white shadow-md rounded">
           <thead>
@@ -65,7 +68,6 @@ export default function BedsAdmin() {
               <th className="text-left p-2 border-b">Bed No.</th>
               <th className="text-left p-2 border-b">Patient</th>
               <th className="text-left p-2 border-b">Occupied</th>
-              <th className="text-left p-2 border-b">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -87,14 +89,6 @@ export default function BedsAdmin() {
                   </select>
                 </td>
                 <td className="p-2 border-b">{bed.occupied ? "Yes" : "No"}</td>
-                <td className="p-2 border-b">
-                  <button
-                    onClick={() => handleDeleteBed(bed.id)}
-                    className="py-1 px-2 bg-red-500 hover:bg-red-700 text-white rounded"
-                  >
-                    Delete
-                  </button>
-                </td>
               </tr>
             ))}
           </tbody>

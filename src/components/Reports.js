@@ -15,6 +15,7 @@ import {
   ArcElement,
 } from "chart.js";
 
+// Register Chart.js components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -28,14 +29,21 @@ ChartJS.register(
 );
 
 export default function Reports() {
+  // State to manage clients data
   const [clients, setClients] = useState([]);
+  // State to manage appointments data
   const [appointments, setAppointments] = useState([]);
+  // State to manage the start date for reports
   const [startDate, setStartDate] = useState("");
+  // State to manage the end date for reports
   const [endDate, setEndDate] = useState("");
+  // State to manage the selected report type
   const [reportType, setReportType] = useState("");
 
+  // Memoize the reference to the 'clients' collection to avoid unnecessary re-renders
   const clientsCollectionRef = useMemo(() => collection(db, "clients"), []);
 
+  // Memoize the references to the 'cabinets' collections to avoid unnecessary re-renders
   const cabinetCollections = useMemo(() => {
     return ["Cabinet 1", "Cabinet 2", "Cabinet 3"].map((cabinetName) => ({
       name: cabinetName,
@@ -43,6 +51,7 @@ export default function Reports() {
     }));
   }, []);
 
+  // Fetch clients and appointments data from Firestore when the component mounts
   useEffect(() => {
     const fetchData = async () => {
       const clientsData = await getDocs(clientsCollectionRef);
@@ -60,6 +69,7 @@ export default function Reports() {
     fetchData();
   }, [clientsCollectionRef, cabinetCollections]);
 
+  // Handle exporting data to Excel
   const handleExport = () => {
     const workbook = XLSX.utils.book_new();
     let sheetData = [];
@@ -123,10 +133,12 @@ export default function Reports() {
     XLSX.writeFile(workbook, `${reportName}.xlsx`);
   };
 
+  // Validate date range for reports
   const isValidDateRange = () => {
     return new Date(startDate) <= new Date(endDate);
   };
 
+  // Validate form inputs for generating reports
   const isFormValid = () => {
     if (
       ["totalClients", "clientDemographics", "clientHealthIssues"].includes(
@@ -138,6 +150,7 @@ export default function Reports() {
     return reportType && startDate && endDate && isValidDateRange();
   };
 
+  // Render the component
   return (
     <div className="p-4">
       <div className="mb-4">

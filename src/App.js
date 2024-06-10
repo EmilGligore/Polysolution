@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Main from "./components/Main";
 import Auth from "./components/Auth";
 import Admin from "./admin/Admin";
+import Employee from "./employee/Employee";
 import "./index.css";
 
 export default function App() {
@@ -48,8 +49,9 @@ export default function App() {
       ) : (
         <Router>
           <Routes>
-            <Route path="/" element={isLoggedIn ? <Navigate to={user?.email === "admin@admin.com" ? "/admin" : "/components"} /> : <Auth onLogin={handleLogin} />} />
-            <Route path="/admin" element={isLoggedIn && user?.email === "admin@admin.com" ? <Admin onLogout={handleLogout} /> : <Navigate to="/" />} />
+            <Route path="/" element={isLoggedIn ? <Navigate to={user?.role === "admin" ? "/admin" : user?.role === "doctor" ? "/employee" : "/components"} /> : <Auth onLogin={handleLogin} />} />
+            <Route path="/admin" element={isLoggedIn && user?.role === "admin" ? <Admin onLogout={handleLogout} /> : <Navigate to="/" />} />
+            <Route path="/employee" element={isLoggedIn && user?.role === "doctor" ? <Employee onLogout={handleLogout} /> : <Navigate to="/" />} />
             <Route path="/components" element={isLoggedIn ? <Main onLogout={handleLogout} /> : <Navigate to="/" />} />
           </Routes>
         </Router>

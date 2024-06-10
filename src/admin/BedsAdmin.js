@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { db } from "../config/firebase";
+import React, { useState, useEffect, useCallback, useMemo } from "react"; // Import React and necessary hooks
+import { db } from "../config/firebase"; // Import Firebase configuration
 import {
   collection,
   getDocs,
@@ -7,15 +7,18 @@ import {
   doc,
   addDoc,
   updateDoc
-} from "firebase/firestore";
+} from "firebase/firestore"; // Import Firestore functions
 
+// Main component for managing beds
 export default function BedsAdmin() {
-  const [beds, setBeds] = useState([]);
-  const [clients, setClients] = useState([]);
+  const [beds, setBeds] = useState([]); // State to store list of beds
+  const [clients, setClients] = useState([]); // State to store list of clients
 
+  // Memoized references to the Firestore collections "beds" and "clients"
   const bedsCollectionRef = useMemo(() => collection(db, "beds"), []);
   const clientsCollectionRef = useMemo(() => collection(db, "clients"), []);
 
+  // Function to fetch bed data from Firestore
   const fetchBeds = useCallback(async () => {
     const querySnapshot = await getDocs(bedsCollectionRef);
     const bedsArray = querySnapshot.docs
@@ -25,10 +28,11 @@ export default function BedsAdmin() {
         occupied: doc.data().occupied,
         number: parseInt(doc.data().number, 10),
       }))
-      .sort((a, b) => a.number - b.number);
-    setBeds(bedsArray);
+      .sort((a, b) => a.number - b.number); // Sort beds by number
+    setBeds(bedsArray); // Update state with fetched beds
   }, [bedsCollectionRef]);
 
+  // useEffect hook to fetch beds and clients when the component mounts
   useEffect(() => {
     fetchBeds();
     const fetchClients = async () => {
@@ -37,24 +41,27 @@ export default function BedsAdmin() {
         id: doc.id,
         name: `${doc.data().firstName} ${doc.data().surname}`,
       }));
-      setClients(clientsArray);
+      setClients(clientsArray); // Update state with fetched clients
     };
     fetchClients();
   }, [bedsCollectionRef, clientsCollectionRef, fetchBeds]);
 
+  // Handle adding a new bed
   const handleAddBed = async () => {
     const bedNumber = prompt("Enter the number of the new bed:");
     if (bedNumber) {
       await addDoc(bedsCollectionRef, { number: bedNumber, occupied: false, pacient: "" });
-      fetchBeds();
+      fetchBeds(); // Refresh beds after adding
     }
   };
 
+  // Handle deleting a bed
   const handleDeleteBed = async (bedId) => {
     await deleteDoc(doc(db, "beds", bedId));
-    fetchBeds(); 
+    fetchBeds(); // Refresh beds after deleting
   };
 
+  // Handle changing the patient assigned to a bed
   const handlePatientChange = async (bedId, newPatient) => {
     const bedDocRef = doc(db, "beds", bedId);
     const occupiedValue = newPatient !== "";
@@ -62,9 +69,10 @@ export default function BedsAdmin() {
       pacient: newPatient,
       occupied: occupiedValue,
     });
-    fetchBeds(); 
+    fetchBeds(); // Refresh beds after updating
   };
 
+  // JSX to render the bed management table
   return (
     <div className="flex-grow overflow-auto p-4">
       <div className="flex justify-end mb-4">

@@ -10,8 +10,10 @@ import Reports from "./Reports";
 import EmployeeForm from "./EmployeeForm"
 
 export default function Main({ onLogout }) {
+  // State to manage the currently active component
   const [activeComponent, setActiveComponent] = useState(null);
 
+  // Function to render the active component based on the state
   const renderComponent = () => {
     switch (activeComponent) {
       case "schedule":
@@ -32,6 +34,7 @@ export default function Main({ onLogout }) {
     }
   };
 
+  // Function to get the title of the active component
   const getComponentTitle = () => {
     switch (activeComponent) {
       case "schedule":
@@ -53,6 +56,7 @@ export default function Main({ onLogout }) {
     }
   };
 
+  // Render the layout with a sidebar, navbar, and the active component
   return (
     <main className="flex h-screen w-full overflow-hidden">
       <SideBar setActiveComponent={setActiveComponent} />

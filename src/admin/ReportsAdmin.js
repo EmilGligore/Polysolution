@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { db } from "../config/firebase";
-import { getDocs, collection } from "firebase/firestore";
-import * as XLSX from "xlsx";
+import React, { useState, useEffect, useMemo } from "react"; // Import React and necessary hooks
+import { db } from "../config/firebase"; // Import Firebase configuration
+import { getDocs, collection } from "firebase/firestore"; // Import Firestore functions for data retrieval
+import * as XLSX from "xlsx"; // Import XLSX for handling Excel file creation
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -13,8 +13,9 @@ import {
   Tooltip,
   Legend,
   ArcElement,
-} from "chart.js";
+} from "chart.js"; // Import Chart.js components for chart rendering
 
+// Register Chart.js components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -27,15 +28,18 @@ ChartJS.register(
   ArcElement
 );
 
+// Main component for generating and exporting reports
 export default function Reports() {
-  const [clients, setClients] = useState([]);
-  const [appointments, setAppointments] = useState([]);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [reportType, setReportType] = useState("");
+  const [clients, setClients] = useState([]); // State to store list of clients
+  const [appointments, setAppointments] = useState([]); // State to store list of appointments
+  const [startDate, setStartDate] = useState(""); // State to store the start date for report filtering
+  const [endDate, setEndDate] = useState(""); // State to store the end date for report filtering
+  const [reportType, setReportType] = useState(""); // State to track selected report type
 
+  // Memoized reference to the Firestore collection "clients"
   const clientsCollectionRef = useMemo(() => collection(db, "clients"), []);
 
+  // Memoized references to Firestore collections for different cabinets
   const cabinetCollections = useMemo(() => {
     return ["Cabinet 1", "Cabinet 2", "Cabinet 3"].map((cabinetName) => ({
       name: cabinetName,
@@ -43,11 +47,14 @@ export default function Reports() {
     }));
   }, []);
 
+  // Fetch data from Firestore when the component mounts
   useEffect(() => {
     const fetchData = async () => {
+      // Fetch clients data
       const clientsData = await getDocs(clientsCollectionRef);
       setClients(clientsData.docs.map((doc) => doc.data()));
 
+      // Fetch appointments data from each cabinet
       const appointmentsData = [];
       for (const cabinet of cabinetCollections) {
         const querySnapshot = await getDocs(cabinet.collectionRef);
@@ -60,11 +67,13 @@ export default function Reports() {
     fetchData();
   }, [clientsCollectionRef, cabinetCollections]);
 
+  // Handle export of the selected report to Excel
   const handleExport = () => {
-    const workbook = XLSX.utils.book_new();
+    const workbook = XLSX.utils.book_new(); // Create a new workbook
     let sheetData = [];
     let reportName = reportType;
 
+    // Prepare data based on the selected report type
     switch (reportType) {
       case "totalClients":
         sheetData = clients;
@@ -112,21 +121,25 @@ export default function Reports() {
         break;
     }
 
+    // If no data is available for the selected report type and date range
     if (sheetData.length === 0) {
       sheetData.push({
         message: "No data available for selected report type and date range",
       });
     }
 
+    // Create a sheet and append it to the workbook
     const sheet = XLSX.utils.json_to_sheet(sheetData);
     XLSX.utils.book_append_sheet(workbook, sheet, reportType);
-    XLSX.writeFile(workbook, `${reportName}.xlsx`);
+    XLSX.writeFile(workbook, `${reportName}.xlsx`); // Save the workbook as an Excel file
   };
 
+  // Validate the date range
   const isValidDateRange = () => {
     return new Date(startDate) <= new Date(endDate);
   };
 
+  // Validate the form inputs
   const isFormValid = () => {
     if (
       ["totalClients", "clientDemographics", "clientHealthIssues"].includes(
@@ -138,6 +151,7 @@ export default function Reports() {
     return reportType && startDate && endDate && isValidDateRange();
   };
 
+  // JSX to render the report generation form and export button
   return (
     <div className="p-4">
       <div className="mb-4">

@@ -5,16 +5,25 @@ import { db } from "../config/firebase";
 import { collection, getDocs } from "firebase/firestore";
 
 export default function DocExport() {
+  // State to manage the document type
   const [documentType, setDocumentType] = useState("");
+  // State to manage the list of clients
   const [clients, setClients] = useState([]);
+  // State to manage the selected client
   const [selectedClient, setSelectedClient] = useState("");
+  // State to manage the admission date
   const [admissionDate, setAdmissionDate] = useState("");
+  // State to manage the procedure details
   const [procedure, setProcedure] = useState("");
+  // State to manage the discharge date
   const [dischargeDate, setDischargeDate] = useState("");
+  // State to manage the follow-up plan
   const [followUpPlan, setFollowUpPlan] = useState("");
 
+  // Memoize the reference to the 'clients' collection to avoid unnecessary re-renders
   const clientsCollectionRef = useMemo(() => collection(db, "clients"), []);
 
+  // Fetch clients from Firestore when the component mounts
   useEffect(() => {
     const fetchClients = async () => {
       try {
@@ -32,6 +41,7 @@ export default function DocExport() {
     fetchClients();
   }, [clientsCollectionRef]);
 
+  // Function to validate the date format
   const isValidDate = (dateString) => {
     const regex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateString.match(regex)) return false;
@@ -44,6 +54,7 @@ export default function DocExport() {
     return dateString === date.toISOString().split("T")[0];
   };
 
+  // Document templates for different document types
   const templates = {
     deleteCustomerInfo: (client) => `
     <head>
@@ -188,6 +199,7 @@ export default function DocExport() {
     `,
   };
 
+  // Function to handle exporting the document
   const handleExport = () => {
     const client = clients.find((c) => c.id === selectedClient);
     if (!client) return;
@@ -210,16 +222,19 @@ export default function DocExport() {
     );
   };
 
+  // Function to handle document type change
   const handleDocumentTypeChange = (e) => {
     setDocumentType(e.target.value);
     setSelectedClient("");
   };
 
+  // Function to handle client selection change
   const handleClientChange = (e) => {
     const clientId = e.target.value;
     setSelectedClient(clientId);
   };
 
+  // Render the component
   return (
     <div className="bg-white flex-grow">
       <div className="p-4">

@@ -4,10 +4,14 @@ import { auth } from "../config/firebase";
 import { sendPasswordResetEmail } from "firebase/auth";
 
 export default function RecoverPassword({ onBack }) {
+  // State to manage the email input
   const [email, setEmail] = useState("");
+  // State to manage the message to be displayed
   const [message, setMessage] = useState("");
+  // State to manage the success or failure of the password reset request
   const [isSuccess, setIsSuccess] = useState(true);
 
+  // Function to handle password recovery
   const recoverPassword = async () => {
     if (email) {
       try {
@@ -28,6 +32,7 @@ export default function RecoverPassword({ onBack }) {
     }
   };
 
+  // Render the component
   return (
     <div className="flex flex-col items-center justify-center bg-BackgroundAuth w-screen h-screen">
       <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 w-96">
