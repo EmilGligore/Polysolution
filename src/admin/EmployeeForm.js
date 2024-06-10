@@ -1,7 +1,16 @@
 import React, { useState, useEffect, useMemo } from "react"; // Import React and necessary hooks
 import { auth, db } from "../config/firebase"; // Import Firebase configuration for authentication and database
 import { createUserWithEmailAndPassword } from "firebase/auth"; // Import Firebase authentication function
-import { collection, getDocs, doc, setDoc, deleteDoc, writeBatch, query, where } from "firebase/firestore"; // Import Firestore functions
+import {
+  collection,
+  getDocs,
+  doc,
+  setDoc,
+  deleteDoc,
+  writeBatch,
+  query,
+  where,
+} from "firebase/firestore"; // Import Firestore functions
 
 // Main component for employee scheduling
 export default function EmployeeScheduling() {
@@ -38,7 +47,11 @@ export default function EmployeeScheduling() {
   const handleCreateEmployee = async (event) => {
     event.preventDefault(); // Prevent form from submitting normally
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       const user = userCredential.user;
 
       await setDoc(doc(db, "employees", user.uid), {
@@ -68,7 +81,9 @@ export default function EmployeeScheduling() {
   const handleDeleteEmployee = async (event) => {
     event.preventDefault(); // Prevent form from submitting normally
     try {
-      const employeeToDelete = employees.find(emp => emp.id === selectedEmployee);
+      const employeeToDelete = employees.find(
+        (emp) => emp.id === selectedEmployee
+      );
       const { firstName, lastName } = employeeToDelete;
 
       const userDocRef = doc(db, "employees", selectedEmployee);
@@ -79,7 +94,11 @@ export default function EmployeeScheduling() {
 
       for (const scheduleDoc of schedulesSnapshot.docs) {
         const dateCollectionRef = collection(scheduleDoc.ref, "employees");
-        const q = query(dateCollectionRef, where("firstName", "==", firstName), where("lastName", "==", lastName));
+        const q = query(
+          dateCollectionRef,
+          where("firstName", "==", firstName),
+          where("lastName", "==", lastName)
+        );
         const employeeDocs = await getDocs(q);
 
         employeeDocs.forEach((employeeDoc) => {
@@ -121,8 +140,9 @@ export default function EmployeeScheduling() {
         selectedEmployee
       );
       await setDoc(scheduleRef, {
-        firstName: employees.find(emp => emp.id === selectedEmployee).firstName,
-        lastName: employees.find(emp => emp.id === selectedEmployee).lastName
+        firstName: employees.find((emp) => emp.id === selectedEmployee)
+          .firstName,
+        lastName: employees.find((emp) => emp.id === selectedEmployee).lastName,
       });
 
       alert("Schedule updated successfully!");
@@ -220,7 +240,10 @@ export default function EmployeeScheduling() {
             className="w-full p-2 border rounded"
           />
         </div>
-        <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded">
+        <button
+          type="submit"
+          className="w-full bg-blue-500 text-white p-2 rounded"
+        >
           Create Employee
         </button>
       </form>
@@ -242,7 +265,10 @@ export default function EmployeeScheduling() {
             ))}
           </select>
         </div>
-        <button type="submit" className="w-full bg-red-500 text-white p-2 rounded">
+        <button
+          type="submit"
+          className="w-full bg-red-500 text-white p-2 rounded"
+        >
           Delete Employee
         </button>
       </form>
@@ -273,7 +299,10 @@ export default function EmployeeScheduling() {
             className="w-full p-2 border rounded"
           />
         </div>
-        <button type="submit" className="w-full bg-green-500 text-white p-2 rounded">
+        <button
+          type="submit"
+          className="w-full bg-green-500 text-white p-2 rounded"
+        >
           Save Schedule
         </button>
       </form>
@@ -290,7 +319,10 @@ export default function EmployeeScheduling() {
       </div>
       <ul className="space-y-2">
         {employeesOnDate.map((employee) => (
-          <li key={employee.id} className="flex items-center justify-between p-2 border rounded">
+          <li
+            key={employee.id}
+            className="flex items-center justify-between p-2 border rounded"
+          >
             <span>
               {employee.firstName} {employee.lastName}
             </span>
