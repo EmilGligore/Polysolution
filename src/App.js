@@ -40,7 +40,7 @@ export default function App() {
   return (
     <div
       id="App"
-      className="bg-gradient-to-r from-blue-800 via-blue-600 to-blue-500 h-screen w-screen overflow-hidden"
+      className="bg-gradient-to-r from-blue-800 via-blue-600 to-blue-500 h-screen w-screen"
     >
       {isLoading ? (
         <div className="flex items-center justify-center h-screen">

@@ -60,8 +60,8 @@ export default function BedsAdmin() {
 
   // Render the component
   return (
-    <div className="flex-grow overflow-y-scroll p-4 overflow-auto">
-      <div className="max-h-screen overflow-y-auto">
+    <div className="flex-grow overflow-auto p-4 h-full">
+      <div className="h-full overflow-y-auto">
         <table className="w-full bg-white shadow-md rounded">
           <thead>
             <tr>

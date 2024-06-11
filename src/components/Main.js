@@ -58,11 +58,11 @@ export default function Main({ onLogout }) {
 
   // Render the layout with a sidebar, navbar, and the active component
   return (
-    <main className="flex h-screen w-full overflow-hidden">
+    <main className="flex h-screen w-full">
       <SideBar setActiveComponent={setActiveComponent} />
       <div className="flex-grow flex flex-col bg-white">
         <NavBar onLogout={onLogout} title={getComponentTitle()} />
-        <div className="flex-grow overflow-hidden">{renderComponent()}</div>
+        <div className="flex-grow">{renderComponent()}</div>
       </div>
     </main>
   );

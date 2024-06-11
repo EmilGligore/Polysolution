@@ -61,7 +61,7 @@ export default function EmployeeSchedule() {
         {daysInMonth.map((day) => (
           <div
             key={day}
-            className={`p-4 border rounded text-center ${employeeWorkDays.includes(day) ? "bg-green-500 text-white" : "bg-white"}`}
+            className={`p-4 border rounded text-center ${employeeWorkDays.includes(day) ? "bg-blue-500 text-white" : "bg-white"}`}
           >
             {format(new Date(day), "d")}
           </div>

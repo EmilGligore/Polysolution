@@ -6,14 +6,14 @@ import {
   doc,
   addDoc,
   deleteDoc,
-  updateDoc
+  updateDoc,
 } from "firebase/firestore";
 
 // The main Stock component
 export default function Stock() {
   // Define a memoized reference to the Firestore collection "stock"
   const stockCollectionRef = useMemo(() => collection(db, "stock"), []);
-  
+
   // Define state variables to manage the stock items and the currently hovered item ID
   const [stock, setStock] = useState([]);
   const [hoveredId, setHoveredId] = useState(null);
@@ -153,11 +153,33 @@ export default function Stock() {
   // JSX to render the stock management table
   return (
     <div className="bg-white flex-grow overflow-auto p-4 rounded shadow-md">
+      <style>
+        {`
+    .hover-buttons {
+      right: 16px;
+    }
+    .hover-buttons button {
+      margin-left: 4px;
+    }
+    .hover-container {
+      position: relative;
+      width: 100%;
+    }
+    .bg-transparent input {
+      border: none;
+    }
+  `}
+      </style>
+
       <table className="w-full border-collapse">
         <thead>
           <tr className="border-b border-gray-200">
-            <th className="text-left p-4 h-12 font-semibold text-gray-700">Item</th>
-            <th className="text-left p-4 h-12 font-semibold text-gray-700">Quantity</th>
+            <th className="text-left p-4 h-12 font-semibold text-gray-700">
+              Item
+            </th>
+            <th className="text-left p-4 h-12 font-semibold text-gray-700">
+              Quantity
+            </th>
             <th className="text-right p-4 h-12">
               <button
                 onClick={addNewStock}
@@ -176,7 +198,7 @@ export default function Stock() {
               onMouseEnter={() => setHoveredId(item.id)}
               onMouseLeave={() => setHoveredId(null)}
             >
-              <td className="p-4">
+              <td className="p-4 w-1/3">
                 <input
                   type="text"
                   value={item.name}
@@ -184,11 +206,11 @@ export default function Stock() {
                   onChange={(e) =>
                     handleInputChange(item.id, "name", e.target.value)
                   }
-                  className="bg-transparent w-full border-b border-dashed border-gray-400 focus:outline-none"
+                  className="bg-transparent w-full focus:outline-none"
                   placeholder="Item..."
                 />
               </td>
-              <td className="p-4">
+              <td className="p-4 w-1/3">
                 <input
                   type="number"
                   value={item.quantity}
@@ -196,49 +218,51 @@ export default function Stock() {
                   onChange={(e) =>
                     handleInputChange(item.id, "quantity", e.target.value)
                   }
-                  className="bg-transparent w-full border-b border-dashed border-gray-400 focus:outline-none"
+                  className="bg-transparent w-full focus:outline-none"
                   placeholder="Quantity..."
                 />
               </td>
-              <td className="flex justify-end items-center p-4">
-                <div
-                  className={`flex space-x-2 ${
-                    hoveredId === item.id ? "" : "hidden"
-                  }`}
-                >
-                  <button
-                    onClick={() => toggleEdit(item.id)}
-                    className={`${
-                      item.isEdited
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-blue-500 hover:bg-blue-700"
-                    } py-1 px-4 rounded text-white`}
-                    disabled={item.isEdited}
+              <td className="p-4 w-1/3 relative">
+                <div className="hover-container">
+                  <div
+                    className={`hover-buttons ${
+                      hoveredId === item.id ? "flex" : "hidden"
+                    }`}
                   >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleSave(item.id)}
-                    className={`${
-                      item.isEditable
-                        ? "bg-green-500 hover:bg-green-700"
-                        : "bg-gray-400 cursor-not-allowed"
-                    } py-1 px-4 rounded text-white`}
-                    disabled={!item.isEditable}
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => deleteStockItem(item.id)}
-                    className={`${
-                      item.isEdited
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-red-500 hover:bg-red-700"
-                    } py-1 px-4 rounded text-white`}
-                    disabled={item.isEdited}
-                  >
-                    Delete
-                  </button>
+                    <button
+                      onClick={() => toggleEdit(item.id)}
+                      className={`${
+                        item.isEdited
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-blue-500 hover:bg-blue-700"
+                      } py-1 px-4 rounded text-white`}
+                      disabled={item.isEdited}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleSave(item.id)}
+                      className={`${
+                        item.isEditable
+                          ? "bg-green-500 hover:bg-green-700"
+                          : "bg-gray-400 cursor-not-allowed"
+                      } py-1 px-4 rounded text-white`}
+                      disabled={!item.isEditable}
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => deleteStockItem(item.id)}
+                      className={`${
+                        item.isEdited
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-red-500 hover:bg-red-700"
+                      } py-1 px-4 rounded text-white`}
+                      disabled={item.isEdited}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </td>
             </tr>

@@ -14,6 +14,8 @@ export default function Schedule() {
   const [cabinets, setCabinets] = useState([]);
   // State to manage clients data
   const [clients, setClients] = useState([]);
+  // State to manage employees data
+  const [employees, setEmployees] = useState([]);
   // State to manage the selected date
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
@@ -35,8 +37,9 @@ export default function Schedule() {
 
   // Memoize the reference to the 'clients' collection to avoid unnecessary re-renders
   const clientsCollectionRef = useMemo(() => collection(db, "clients"), []);
+  const employeesCollectionRef = useMemo(() => collection(db, "employees"), []);
 
-  // Fetch cabinets and clients data from Firestore when the component mounts
+  // Fetch cabinets, clients, and employees data from Firestore when the component mounts
   useEffect(() => {
     const fetchCabinetContents = async () => {
       const fetchedCabinets = await Promise.all(
@@ -73,9 +76,23 @@ export default function Schedule() {
       }
     };
 
+    const fetchEmployees = async () => {
+      try {
+        const data = await getDocs(employeesCollectionRef);
+        const employeesArray = data.docs.map((doc) => ({
+          id: doc.id,
+          name: `${doc.data().firstName} ${doc.data().lastName}`,
+        }));
+        setEmployees(employeesArray);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
     fetchCabinetContents();
     fetchClients();
-  }, [cabinetCollections, clientsCollectionRef]);
+    fetchEmployees();
+  }, [cabinetCollections, clientsCollectionRef, employeesCollectionRef]);
 
   // Handle date change
   const handleDateChange = (e) => {
@@ -372,66 +389,65 @@ export default function Schedule() {
   };
 
   return (
-    <div className="flex-grow overflow-auto">
+    <div className="flex-grow overflow-auto h-full relative">
+      <style>
+        {`
+          .hover-buttons {
+            position: absolute;
+            right: 10px;
+            display: flex;
+          }
+        `}
+      </style>
       <div className="flex items-center justify-center border-b border-gray-200 h-12">
-        <div
-          className="mr-2 hover:bg-gray-300 rounded-xl"
-          onClick={handlePrevDate}
-        >
-          <button onClick={handlePrevDate} className="mx-2">
-            {"<"}
-          </button>
-        </div>
+        <button onClick={handlePrevDate} className="mx-2 hover:bg-gray-300 rounded-full p-1">
+          {"<"}
+        </button>
         <input
           type="date"
           value={selectedDate}
           onChange={handleDateChange}
-          className=""
+          className="border rounded p-2"
         ></input>
-        <div
-          className="ml-2 hover:bg-gray-300 rounded-xl"
-          onClick={handleNextDate}
-        >
-          <button onClick={handleNextDate} className="mx-2">
-            {">"}
-          </button>
-        </div>
+        <button onClick={handleNextDate} className="mx-2 hover:bg-gray-300 rounded-full p-1">
+          {">"}
+        </button>
       </div>
       {cabinets.map((cabinet) => (
-        <div key={cabinet.name} className=" bg-white rounded">
-          <div className="flex items-center justify-center h-12 border-b border-gray-200">
-            <h2 className="text-lg font-bold w-full pl-2">{cabinet.name}</h2>
-          </div>
-          <div className="flex justify-between items-center border-b border-gray-200 h-12">
-            <div className="flex-grow flex justify-start items-start">
-              <span className="ml-2 font-semibold w-1/5">Start Time</span>
-              <span className="w-1/5 font-semibold">End Time</span>
-              <span className="w-1/5 font-semibold">Client</span>
-              <span className="w-1/5 font-semibold">Procedure</span>
-              <span className="w-1/5 font-semibold">Doctor</span>
-            </div>
+        <div key={cabinet.name} className="bg-white rounded shadow-md my-4 relative">
+          <div className="flex items-center justify-between h-12 border-b border-gray-200 px-4">
+            <h2 className="text-lg font-bold">{cabinet.name}</h2>
             <button
               onClick={() => addNewDocumentToCabinet(cabinet.name)}
               className={`${
                 isBeforeToday || isAfter30DaysFromToday
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-blue-500 hover:bg-blue-700"
-              } w-[148px] rounded mr-3 my-2 py-1 text-white`}
+              } rounded px-4 py-2 text-white`}
               disabled={isBeforeToday || isAfter30DaysFromToday}
             >
               + Add
             </button>
+          </div>
+          <div className="flex justify-between items-center border-b border-gray-200 h-12">
+            <div className="flex-grow flex justify-start items-start">
+              <span className="ml-2 font-semibold w-[12%]">Start Time</span>
+              <span className="w-[12%] font-semibold">End Time</span>
+              <span className="w-1/5 font-semibold">Client</span>
+              <span className="w-1/5 font-semibold">Procedure</span>
+              <span className="w-1/5 font-semibold">Doctor</span>
+            </div>
           </div>
           {cabinet.documents
             .filter((doc) => doc.date?.split("T")[0] === selectedDate)
             .map((doc) => (
               <div
                 key={doc.id}
-                className="flex justify-between items-center h-12 border-b border-gray-200"
+                className="flex justify-between items-center h-12 border-b border-gray-200 px-4 relative"
                 onMouseEnter={() => setHoveredDocId(doc.id)}
                 onMouseLeave={() => setHoveredDocId(null)}
               >
-                <div className="w-[85%]">
+                <div className="flex items-center space-x-4 w-full">
                   <input
                     id="startTime"
                     type="time"
@@ -445,7 +461,7 @@ export default function Schedule() {
                         "startTime"
                       )
                     }
-                    className="ml-2 w-13 "
+                    className="border rounded p-2"
                   ></input>
                   <input
                     id="endTime"
@@ -460,7 +476,7 @@ export default function Schedule() {
                         "endTime"
                       )
                     }
-                    className="w-13 ml-[134px]"
+                    className="border rounded p-2"
                   ></input>
                   <select
                     value={doc.name}
@@ -473,7 +489,7 @@ export default function Schedule() {
                         "name"
                       )
                     }
-                    className="w-1/6 ml-[134px]"
+                    className="border rounded p-2"
                   >
                     <option value="">Select Client</option>
                     {clients.map((client) => (
@@ -494,12 +510,11 @@ export default function Schedule() {
                         "procedure"
                       )
                     }
-                    className="w-1/6 ml-[39px]"
+                    className="border rounded p-2"
                   ></input>
-                  <input
-                    id="doctor"
-                    readOnly={!doc.isEditable}
+                  <select
                     value={doc.doctor}
+                    disabled={!doc.isEditable}
                     onChange={(e) =>
                       handleInputChange(
                         cabinet.name,
@@ -508,11 +523,18 @@ export default function Schedule() {
                         "doctor"
                       )
                     }
-                    className="w-[140px] ml-[38px]"
-                  ></input>
+                    className="border rounded p-2"
+                  >
+                    <option value="">Select Doctor</option>
+                    {employees.map((employee) => (
+                      <option key={employee.id} value={employee.name}>
+                        {employee.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div
-                  className={`flex ${hoveredDocId === doc.id ? "" : "hidden"}`}
+                  className={`hover-buttons ${hoveredDocId === doc.id ? "" : "hidden"}`}
                 >
                   <>
                     <button
@@ -521,8 +543,7 @@ export default function Schedule() {
                         isBeforeToday || doc.isNew || doc.isEdited
                           ? "bg-gray-400 cursor-not-allowed"
                           : "bg-blue-500 hover:bg-blue-700"
-                      } py-1 px-4 m-1 rounded text-white`}
-                      style={{ width: "70px" }}
+                      } py-1 px-4 rounded text-white`}
                       disabled={isBeforeToday || doc.isNew || doc.isEdited}
                     >
                       Edit
@@ -535,9 +556,8 @@ export default function Schedule() {
                         isAfter30DaysFromToday ||
                         !doc.isEditing
                           ? "bg-gray-400 cursor-not-allowed"
-                          : "bg-blue-500 hover:bg-green-500"
-                      } py-1 px-4 m-1 rounded text-white`}
-                      style={{ width: "70px" }}
+                          : "bg-green-500 hover:bg-green-700"
+                      } py-1 px-4 rounded text-white`}
                       disabled={
                         !isFormFilled(doc) ||
                         isBeforeToday ||
@@ -552,9 +572,8 @@ export default function Schedule() {
                       className={`${
                         isBeforeToday || doc.isNew || doc.isEditing
                           ? "bg-gray-400 cursor-not-allowed"
-                          : "bg-blue-500 hover:bg-red-500"
-                      } py-1 m-1 mr-3 rounded text-white`}
-                      style={{ width: "70px" }}
+                          : "bg-red-500 hover:bg-red-700"
+                      } py-1 px-4 rounded text-white`}
                       disabled={isBeforeToday || doc.isNew || doc.isEditing}
                     >
                       Delete

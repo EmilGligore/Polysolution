@@ -223,7 +223,7 @@ export default function UserDetails() {
 
   // JSX to render the user details form
   return (
-    <div className="p-6 bg-white shadow-md rounded-md overflow-auto">
+    <div className="p-6 bg-white shadow-md rounded-md overflow-auto h-full">
       <div className="flex justify-between items-center mb-4">
         <select
           value={selectedOptionIndex}
