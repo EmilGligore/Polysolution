@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { db } from "../config/firebase";
 import {
   deleteDoc,
@@ -10,13 +10,10 @@ import {
 } from "firebase/firestore";
 
 export default function Schedule() {
-  // State to manage cabinets data
   const [cabinets, setCabinets] = useState([]);
-  // State to manage clients data
   const [clients, setClients] = useState([]);
-  // State to manage employees data
   const [employees, setEmployees] = useState([]);
-  // State to manage the selected date
+  const [filteredDoctors, setFilteredDoctors] = useState([]);
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
     const day = String(today.getDate()).padStart(2, "0");
@@ -24,10 +21,8 @@ export default function Schedule() {
     const year = today.getFullYear();
     return `${year}-${month}-${day}`;
   });
-  // State to manage the hovered document ID
   const [hoveredDocId, setHoveredDocId] = useState(null);
 
-  // Memoize the references to the 'cabinets' collections to avoid unnecessary re-renders
   const cabinetCollections = useMemo(() => {
     return ["Cabinet 1", "Cabinet 2", "Cabinet 3"].map((cabinetName) => ({
       name: cabinetName,
@@ -35,71 +30,97 @@ export default function Schedule() {
     }));
   }, []);
 
-  // Memoize the reference to the 'clients' collection to avoid unnecessary re-renders
   const clientsCollectionRef = useMemo(() => collection(db, "clients"), []);
   const employeesCollectionRef = useMemo(() => collection(db, "employees"), []);
+  const schedulesCollectionRef = useMemo(() => collection(db, "schedules"), []);
 
-  // Fetch cabinets, clients, and employees data from Firestore when the component mounts
-  useEffect(() => {
-    const fetchCabinetContents = async () => {
-      const fetchedCabinets = await Promise.all(
-        cabinetCollections.map(async ({ name, collectionRef }) => {
-          try {
-            const data = await getDocs(collectionRef);
-            const documents = data.docs.map((doc) => ({
-              ...doc.data(),
-              id: doc.id,
-              isEditable: false,
-              clientId: doc.data().clientId,
-            }));
-            return { name, documents };
-          } catch (err) {
-            console.error(err);
-            return { name, documents: [] };
-          }
-        })
+  const fetchCabinetContents = useCallback(async () => {
+    const fetchedCabinets = await Promise.all(
+      cabinetCollections.map(async ({ name, collectionRef }) => {
+        try {
+          const data = await getDocs(collectionRef);
+          const documents = data.docs.map((doc) => ({
+            ...doc.data(),
+            id: doc.id,
+            isEditable: false,
+            clientId: doc.data().clientId,
+          }));
+          return { name, documents };
+        } catch (err) {
+          console.error(err);
+          return { name, documents: [] };
+        }
+      })
+    );
+
+    setCabinets(fetchedCabinets);
+  }, [cabinetCollections]);
+
+  const fetchClients = useCallback(async () => {
+    try {
+      const data = await getDocs(clientsCollectionRef);
+      const clientsArray = data.docs.map((doc) => ({
+        id: doc.id,
+        name: `${doc.data().firstName} ${doc.data().surname}`,
+      }));
+      setClients(clientsArray);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [clientsCollectionRef]);
+
+  const fetchEmployees = useCallback(async () => {
+    try {
+      const data = await getDocs(employeesCollectionRef);
+      const employeesArray = data.docs.map((doc) => ({
+        id: doc.id,
+        name: `${doc.data().firstName} ${doc.data().lastName}`,
+      }));
+      setEmployees(employeesArray);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [employeesCollectionRef]);
+
+  const fetchSchedules = useCallback(async (date) => {
+    try {
+      const [year, month, day] = date.split("-");
+      const employeesCollectionRef = collection(
+        db,
+        "schedules",
+        `${year}-${month}-${day}`,
+        "employees"
       );
+      const employeesSnapshot = await getDocs(employeesCollectionRef);
+      const availableDoctors = employeesSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        name: `${doc.data().firstName} ${doc.data().lastName}`,
+      }));
+      setFilteredDoctors(availableDoctors);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
 
-      setCabinets(fetchedCabinets);
-    };
-
-    const fetchClients = async () => {
-      try {
-        const data = await getDocs(clientsCollectionRef);
-        const clientsArray = data.docs.map((doc) => ({
-          id: doc.id,
-          name: `${doc.data().firstName} ${doc.data().surname}`,
-        }));
-        setClients(clientsArray);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    const fetchEmployees = async () => {
-      try {
-        const data = await getDocs(employeesCollectionRef);
-        const employeesArray = data.docs.map((doc) => ({
-          id: doc.id,
-          name: `${doc.data().firstName} ${doc.data().lastName}`,
-        }));
-        setEmployees(employeesArray);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
+  useEffect(() => {
     fetchCabinetContents();
     fetchClients();
     fetchEmployees();
-  }, [cabinetCollections, clientsCollectionRef, employeesCollectionRef]);
+    fetchSchedules(selectedDate);
+  }, [
+    fetchCabinetContents,
+    fetchClients,
+    fetchEmployees,
+    fetchSchedules,
+    selectedDate,
+  ]);
 
-  // Handle date change
   const handleDateChange = (e) => {
-    setSelectedDate(e.target.value);
+    const newDate = e.target.value;
+    setSelectedDate(newDate);
+    fetchSchedules(newDate);
   };
 
-  // Handle saving a document
   const handleSave = async (cabinetName, docId) => {
     const cabinet = cabinets.find((cabinet) => cabinet.name === cabinetName);
     const docToUpdate = cabinet.documents.find((doc) => doc.id === docId);
@@ -155,7 +176,6 @@ export default function Schedule() {
     );
   };
 
-  // Handle edit button click
   const handleEditButton = (cabinetName, docId) => {
     setCabinets((cabinets) =>
       cabinets.map((cabinet) => {
@@ -180,17 +200,16 @@ export default function Schedule() {
     );
   };
 
-  // Handle input change
   const handleInputChange = (cabinetName, docId, newValue, field) => {
     const lettersOnly = /^[A-Za-z\s]*$/;
-    if (
-      (field === "procedure" || field === "doctor") &&
-      !lettersOnly.test(newValue)
-    ) {
+    const cabinet = cabinets.find((cabinet) => cabinet.name === cabinetName);
+    const doc = cabinet.documents.find((doc) => doc.id === docId);
+  
+    if ((field === "procedure" || field === "doctor") && !lettersOnly.test(newValue)) {
       alert("Only letters are allowed for Procedure and Doctor fields.");
       return;
     }
-
+  
     setCabinets((cabinets) =>
       cabinets.map((cabinet) => {
         if (cabinet.name === cabinetName) {
@@ -198,19 +217,11 @@ export default function Schedule() {
             ...cabinet,
             documents: cabinet.documents.map((doc) => {
               if (doc.id === docId) {
-                if (
-                  field === "startTime" &&
-                  doc.endTime &&
-                  newValue > doc.endTime
-                ) {
+                if (field === "startTime" && doc.endTime && newValue > doc.endTime) {
                   alert("Start time cannot be after end time.");
                   return doc;
                 }
-                if (
-                  field === "endTime" &&
-                  doc.startTime &&
-                  newValue < doc.startTime
-                ) {
+                if (field === "endTime" && doc.startTime && newValue < doc.startTime) {
                   alert("End time cannot be before start time.");
                   return doc;
                 }
@@ -233,7 +244,6 @@ export default function Schedule() {
     );
   };
 
-  // Mark document as not new
   const markDocumentAsNotNew = (cabinetName, docId) => {
     setCabinets((cabinets) =>
       cabinets.map((cabinet) => {
@@ -253,11 +263,9 @@ export default function Schedule() {
     );
   };
 
-  // Generate unique ID for new documents
   const generateUniqueId = () =>
     `id-${Math.random().toString(36).substr(2, 9)}`;
 
-  // Add new document to cabinet
   const addNewDocumentToCabinet = (cabinetName) => {
     const today = new Date();
     const selectedDateObj = new Date(selectedDate);
@@ -293,7 +301,6 @@ export default function Schedule() {
     });
   };
 
-  // Handle deleting a document
   const handleDelete = async (cabinetName, docId) => {
     const docRef = doc(db, "cabinets", "cabinets", cabinetName, docId);
     try {
@@ -315,35 +322,29 @@ export default function Schedule() {
     }
   };
 
-  // Check if a form is filled
   const isFormFilled = (doc) => {
     return (
       doc.startTime && doc.endTime && doc.name && doc.procedure && doc.doctor
     );
   };
 
-  // Check if the selected date is before today
   const isBeforeToday =
     new Date(selectedDate) < new Date().setHours(0, 0, 0, 0);
-  // Check if the selected date is after 30 days from today
   const isAfter30DaysFromToday =
     new Date(selectedDate) > new Date().setDate(new Date().getDate() + 30);
 
-  // Handle previous date navigation
   const handlePrevDate = () => {
     const prevDate = new Date(selectedDate);
     prevDate.setDate(prevDate.getDate() - 1);
     setSelectedDate(prevDate.toISOString().split("T")[0]);
   };
 
-  // Handle next date navigation
   const handleNextDate = () => {
     const nextDate = new Date(selectedDate);
     nextDate.setDate(nextDate.getDate() + 1);
     setSelectedDate(nextDate.toISOString().split("T")[0]);
   };
 
-  // Check for overlapping appointments
   const hasOverlap = (startTime1, endTime1, startTime2, endTime2) => {
     return (
       (startTime1 < endTime2 && startTime2 < endTime1) ||
@@ -351,7 +352,6 @@ export default function Schedule() {
     );
   };
 
-  // Validate appointment times
   const validateAppointment = (
     cabinetName,
     docId,
@@ -368,7 +368,6 @@ export default function Schedule() {
     return !overlappingAppointment;
   };
 
-  // Handle input change with validation
   const handleInputChangeWithValidation = (
     cabinetName,
     docId,
@@ -379,18 +378,42 @@ export default function Schedule() {
     const doc = cabinet.documents.find((doc) => doc.id === docId);
     const newStartTime = field === "startTime" ? newValue : doc.startTime;
     const newEndTime = field === "endTime" ? newValue : doc.endTime;
-
-    if (!validateAppointment(cabinetName, docId, newStartTime, newEndTime)) {
+  
+    if ((field === "startTime" || field === "endTime") &&
+        !validateAppointment(cabinetName, docId, newStartTime, newEndTime)) {
       alert("Appointment times overlap. Please choose a different time.");
       return;
     }
-
+  
     handleInputChange(cabinetName, docId, newValue, field);
+  };
+
+  const hasDoctorOverlap = (
+    cabinets,
+    selectedDoctor,
+    startTime,
+    endTime,
+    currentDocId
+  ) => {
+    for (const cabinet of cabinets) {
+      for (const doc of cabinet.documents) {
+        if (
+          doc.doctor === selectedDoctor &&
+          doc.id !== currentDocId &&
+          ((startTime &&
+            endTime &&
+            hasOverlap(startTime, endTime, doc.startTime, doc.endTime)) ||
+            (!startTime && !endTime && doc.date === selectedDate))
+        ) {
+          return true;
+        }
+      }
+    }
+    return false;
   };
 
   return (
     <div className="flex-grow overflow-auto h-full relative">
-      {/* CSS styles for hover buttons */}
       <style>
         {`
           .hover-buttons {
@@ -401,7 +424,10 @@ export default function Schedule() {
         `}
       </style>
       <div className="flex items-center justify-center border-b border-gray-200 h-12">
-        <button onClick={handlePrevDate} className="mx-2 hover:bg-gray-300 rounded-full p-1">
+        <button
+          onClick={handlePrevDate}
+          className="mx-2 hover:bg-gray-300 rounded-full p-1"
+        >
           {"<"}
         </button>
         <input
@@ -410,12 +436,18 @@ export default function Schedule() {
           onChange={handleDateChange}
           className="border rounded p-2"
         ></input>
-        <button onClick={handleNextDate} className="mx-2 hover:bg-gray-300 rounded-full p-1">
+        <button
+          onClick={handleNextDate}
+          className="mx-2 hover:bg-gray-300 rounded-full p-1"
+        >
           {">"}
         </button>
       </div>
       {cabinets.map((cabinet) => (
-        <div key={cabinet.name} className="bg-white rounded shadow-md my-4 relative">
+        <div
+          key={cabinet.name}
+          className="bg-white rounded shadow-md my-4 relative"
+        >
           <div className="flex items-center justify-between h-12 border-b border-gray-200 px-4">
             <h2 className="text-lg font-bold">{cabinet.name}</h2>
             <button
@@ -527,7 +559,7 @@ export default function Schedule() {
                     className="border rounded p-2"
                   >
                     <option value="">Select Doctor</option>
-                    {employees.map((employee) => (
+                    {filteredDoctors.map((employee) => (
                       <option key={employee.id} value={employee.name}>
                         {employee.name}
                       </option>
@@ -535,47 +567,41 @@ export default function Schedule() {
                   </select>
                 </div>
                 <div
-                  className={`hover-buttons ${hoveredDocId === doc.id ? "" : "hidden"}`}
+                  className={`hover-buttons ${
+                    hoveredDocId === doc.id ? "" : "hidden"
+                  }`}
                 >
                   <>
                     <button
                       onClick={() => handleEditButton(cabinet.name, doc.id)}
                       className={`${
-                        isBeforeToday || doc.isNew || doc.isEdited
+                        doc.isEditable || isBeforeToday
                           ? "bg-gray-400 cursor-not-allowed"
                           : "bg-blue-500 hover:bg-blue-700"
                       } py-1 px-4 rounded text-white`}
-                      disabled={isBeforeToday || doc.isNew || doc.isEdited}
+                      disabled={doc.isEditable || isBeforeToday}
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleSave(cabinet.name, doc.id)}
                       className={`${
-                        !isFormFilled(doc) ||
-                        isBeforeToday ||
-                        isAfter30DaysFromToday ||
-                        !doc.isEditing
-                          ? "bg-gray-400 cursor-not-allowed"
-                          : "bg-green-500 hover:bg-green-700"
+                        doc.isEditable && !isBeforeToday
+                          ? "bg-green-500 hover:bg-green-700"
+                          : "bg-gray-400 cursor-not-allowed"
                       } py-1 px-4 rounded text-white`}
-                      disabled={
-                        !isFormFilled(doc) ||
-                        isBeforeToday ||
-                        isAfter30DaysFromToday ||
-                        !doc.isEditing
-                      }
+                      disabled={!doc.isEditable || isBeforeToday}
                     >
                       Save
                     </button>
                     <button
                       onClick={() => handleDelete(cabinet.name, doc.id)}
                       className={`${
-                        isBeforeToday || doc.isNew || doc.isEditing
+                        isBeforeToday
                           ? "bg-gray-400 cursor-not-allowed"
                           : "bg-red-500 hover:bg-red-700"
                       } py-1 px-4 rounded text-white`}
-                      disabled={isBeforeToday || doc.isNew || doc.isEditing}
+                      disabled={isBeforeToday}
                     >
                       Delete
                     </button>
