@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import EmployeeNavBar from "./EmployeeNavBar";
 import EmployeeSchedule from "./EmployeeSchedule";
 import SideBarEmployee from "./SideBarEmployee";
+import EmployeeDay from "./EmployeeDay"
 
 // Main component for the Employee view
 export default function Employee({ onLogout }) {
@@ -13,6 +14,8 @@ export default function Employee({ onLogout }) {
     switch (activeComponent) {
       case "schedule":
         return <EmployeeSchedule />;
+      case "employeeDay":
+        return <EmployeeDay />;
       default:
         return <div>Select an option from the sidebar</div>;
     }

@@ -40,6 +40,28 @@ export default function SideBarEmployee({ setActiveComponent }) {
             </span>
           </li>
         </div>
+        <div
+          className={`m-1 ${
+            activeItem === "employeeDay" ? "bg-blue-900" : "hover:bg-blue-900"
+          } rounded`}
+          onClick={() => handleItemClick("employeeDay")}
+        >
+          <li title="EmployeeDay" className="flex items-center py-2">
+            <FontAwesomeIcon
+              icon={faCalendarDays}
+              style={{ color: "#ffffff" }}
+              size="lg"
+              className="mr-2"
+            />
+            <span
+              className={`text-white ${
+                activeItem === "employeeDay" ? "font-bold" : ""
+              } ml-2`}
+            >
+              Appointments
+            </span>
+          </li>
+        </div>
       </ul>
     </div>
   );

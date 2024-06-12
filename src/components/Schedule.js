@@ -390,6 +390,7 @@ export default function Schedule() {
 
   return (
     <div className="flex-grow overflow-auto h-full relative">
+      {/* CSS styles for hover buttons */}
       <style>
         {`
           .hover-buttons {
