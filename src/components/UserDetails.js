@@ -127,6 +127,16 @@ export default function UserDetails() {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const healthPattern = /^[A-Za-z0-9\s]{1,50}$/;
     const emerNamePattern = /^[A-Za-z\s]{1,30}$/;
+    const birthdatePattern = /^\d{4}-\d{2}-\d{2}$/;
+
+    // Check birthdate is in a valid range
+    const birthdateValid = () => {
+      if (!birthdatePattern.test(formData.birthdate)) {
+        return false;
+      }
+      const year = parseInt(formData.birthdate.split("-")[0]);
+      return year >= 1900 && year <= new Date().getFullYear();
+    };
 
     return (
       namePattern.test(formData.firstName) &&
@@ -135,6 +145,7 @@ export default function UserDetails() {
       phonePattern.test(formData.phone) &&
       emailPattern.test(formData.email) &&
       formData.birthdate && // Ensure birthdate is not empty
+      birthdateValid() && // Validate birthdate
       (formData.gender === "Male" || formData.gender === "Female") &&
       healthPattern.test(formData.healthproblems) &&
       phonePattern.test(formData.emerphone) &&
@@ -281,7 +292,7 @@ export default function UserDetails() {
           { label: "Social Security Number", name: "ssn", type: "text" },
           { label: "Phone", name: "phone", type: "tel" },
           { label: "Email", name: "email", type: "email" },
-          { label: "Birthdate", name: "birthdate", type: "date" },
+          { label: "Birthdate", name: "birthdate", type: "date", min: "1900-01-01", max: new Date().toISOString().split('T')[0] }, // Updated birthdate input
           {
             label: "Gender",
             name: "gender",
@@ -332,6 +343,7 @@ export default function UserDetails() {
                 value={formData[field.name]}
                 onChange={handleInputChange}
                 className="flex-grow p-2 border rounded"
+                {...(field.type === "date" && { min: field.min, max: field.max })}
               />
             )}
           </div>

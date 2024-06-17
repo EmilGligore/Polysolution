@@ -1,9 +1,15 @@
-import "../index.css"; // Import the main stylesheet for styling the components
+import "../index.css"; // Import the main stylesheet
 import React, { useState, useEffect, useMemo } from "react"; // Import React and necessary hooks
 import { db } from "../config/firebase"; // Import Firebase configuration
-import { getDocs, collection, doc, updateDoc, addDoc } from "firebase/firestore"; // Import Firestore functions
+import {
+  getDocs,
+  collection,
+  doc,
+  updateDoc,
+  addDoc,
+} from "firebase/firestore"; // Import Firestore functions
 
-// Initial state for form data
+// Initial form data structure
 const initialFormData = {
   firstName: "",
   surname: "",
@@ -18,18 +24,18 @@ const initialFormData = {
   gdpr: false,
 };
 
-// Main component for managing user details
+// Main component for user details
 export default function UserDetails() {
   const [clientsList, setClientsList] = useState([]); // State to store list of clients
   const [isAddingClient, setIsAddingClient] = useState(false); // State to track if a new client is being added
   const [showNewInfo, setShowNewInfo] = useState(false); // State to toggle form display
-  const [selectedOptionIndex, setSelectedOptionIndex] = useState(0); // State to track selected client index
+  const [selectedOptionIndex, setSelectedOptionIndex] = useState(0); // State to track selected client
   const [formData, setFormData] = useState(initialFormData); // State to manage form data
 
   // Memoized reference to the Firestore collection "clients"
   const clientsCollectionRef = useMemo(() => collection(db, "clients"), []);
 
-  // Fetch client list from Firestore when the component mounts
+  // Fetch client list from Firestore when component mounts
   useEffect(() => {
     const getClientsList = async () => {
       try {
@@ -121,7 +127,17 @@ export default function UserDetails() {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const healthPattern = /^[A-Za-z0-9\s]{1,50}$/;
     const emerNamePattern = /^[A-Za-z\s]{1,30}$/;
-  
+    const birthdatePattern = /^\d{4}-\d{2}-\d{2}$/;
+
+    // Check birthdate is in a valid range
+    const birthdateValid = () => {
+      if (!birthdatePattern.test(formData.birthdate)) {
+        return false;
+      }
+      const year = parseInt(formData.birthdate.split("-")[0]);
+      return year >= 1900 && year <= new Date().getFullYear();
+    };
+
     return (
       namePattern.test(formData.firstName) &&
       namePattern.test(formData.surname) &&
@@ -129,6 +145,7 @@ export default function UserDetails() {
       phonePattern.test(formData.phone) &&
       emailPattern.test(formData.email) &&
       formData.birthdate && // Ensure birthdate is not empty
+      birthdateValid() && // Validate birthdate
       (formData.gender === "Male" || formData.gender === "Female") &&
       healthPattern.test(formData.healthproblems) &&
       phonePattern.test(formData.emerphone) &&
@@ -199,7 +216,6 @@ export default function UserDetails() {
     const { name, value, type, checked } = e.target;
     let newValue = value;
 
-    // Validation and formatting based on input field
     if (name === "firstName" || name === "surname" || name === "emername") {
       newValue = newValue
         .replace(/[^A-Za-z\s]/g, "")
@@ -218,7 +234,7 @@ export default function UserDetails() {
 
   // JSX to render the user details form
   return (
-    <div className="p-6 bg-white shadow-md rounded-md overflow-auto">
+    <div className="p-6 bg-white shadow-md rounded-md overflow-auto h-full">
       <div className="flex justify-between items-center mb-4">
         <select
           value={selectedOptionIndex}
@@ -276,7 +292,7 @@ export default function UserDetails() {
           { label: "Social Security Number", name: "ssn", type: "text" },
           { label: "Phone", name: "phone", type: "tel" },
           { label: "Email", name: "email", type: "email" },
-          { label: "Birthdate", name: "birthdate", type: "date" },
+          { label: "Birthdate", name: "birthdate", type: "date", min: "1900-01-01", max: new Date().toISOString().split('T')[0] }, // Updated birthdate input
           {
             label: "Gender",
             name: "gender",
@@ -327,6 +343,7 @@ export default function UserDetails() {
                 value={formData[field.name]}
                 onChange={handleInputChange}
                 className="flex-grow p-2 border rounded"
+                {...(field.type === "date" && { min: field.min, max: field.max })}
               />
             )}
           </div>
