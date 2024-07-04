@@ -125,6 +125,11 @@ export default function Schedule() {
     const cabinet = cabinets.find((cabinet) => cabinet.name === cabinetName);
     const docToUpdate = cabinet.documents.find((doc) => doc.id === docId);
 
+    if (!isFormFilled(docToUpdate)) {
+      alert("Please fill all the required fields.");
+      return;
+    }
+
     const docRef = doc(db, "cabinets", "cabinets", cabinetName, docId);
 
     const updateObject = {
@@ -204,12 +209,15 @@ export default function Schedule() {
     const lettersOnly = /^[A-Za-z\s]*$/;
     const cabinet = cabinets.find((cabinet) => cabinet.name === cabinetName);
     const doc = cabinet.documents.find((doc) => doc.id === docId);
-  
-    if ((field === "procedure" || field === "doctor") && !lettersOnly.test(newValue)) {
+
+    if (
+      (field === "procedure" || field === "doctor") &&
+      !lettersOnly.test(newValue)
+    ) {
       alert("Only letters are allowed for Procedure and Doctor fields.");
       return;
     }
-  
+
     setCabinets((cabinets) =>
       cabinets.map((cabinet) => {
         if (cabinet.name === cabinetName) {
@@ -217,11 +225,19 @@ export default function Schedule() {
             ...cabinet,
             documents: cabinet.documents.map((doc) => {
               if (doc.id === docId) {
-                if (field === "startTime" && doc.endTime && newValue > doc.endTime) {
+                if (
+                  field === "startTime" &&
+                  doc.endTime &&
+                  newValue > doc.endTime
+                ) {
                   alert("Start time cannot be after end time.");
                   return doc;
                 }
-                if (field === "endTime" && doc.startTime && newValue < doc.startTime) {
+                if (
+                  field === "endTime" &&
+                  doc.startTime &&
+                  newValue < doc.startTime
+                ) {
                   alert("End time cannot be before start time.");
                   return doc;
                 }
@@ -378,13 +394,15 @@ export default function Schedule() {
     const doc = cabinet.documents.find((doc) => doc.id === docId);
     const newStartTime = field === "startTime" ? newValue : doc.startTime;
     const newEndTime = field === "endTime" ? newValue : doc.endTime;
-  
-    if ((field === "startTime" || field === "endTime") &&
-        !validateAppointment(cabinetName, docId, newStartTime, newEndTime)) {
+
+    if (
+      (field === "startTime" || field === "endTime") &&
+      !validateAppointment(cabinetName, docId, newStartTime, newEndTime)
+    ) {
       alert("Appointment times overlap. Please choose a different time.");
       return;
     }
-  
+
     handleInputChange(cabinetName, docId, newValue, field);
   };
 
@@ -586,11 +604,13 @@ export default function Schedule() {
                     <button
                       onClick={() => handleSave(cabinet.name, doc.id)}
                       className={`${
-                        doc.isEditable && !isBeforeToday
+                        doc.isEditable && !isBeforeToday && isFormFilled(doc)
                           ? "bg-green-500 hover:bg-green-700"
                           : "bg-gray-400 cursor-not-allowed"
                       } py-1 px-4 rounded text-white`}
-                      disabled={!doc.isEditable || isBeforeToday}
+                      disabled={
+                        !doc.isEditable || isBeforeToday || !isFormFilled(doc)
+                      }
                     >
                       Save
                     </button>

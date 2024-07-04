@@ -9,7 +9,6 @@ import {
   updateDoc,
 } from "firebase/firestore";
 
-// The main Stock component
 export default function Stock() {
   // Define a memoized reference to the Firestore collection "stock"
   const stockCollectionRef = useMemo(() => collection(db, "stock"), []);
@@ -41,6 +40,7 @@ export default function Stock() {
   // Function to add a new stock item locally (not yet saved to Firestore)
   const addNewStock = () => {
     const newStock = {
+      id: `temp-${Date.now()}`, // Assign a temporary unique ID
       name: "",
       quantity: 0,
       isEditable: true,
@@ -69,7 +69,7 @@ export default function Stock() {
 
     // Update the stock item in the state
     const updatedStock = stock.map((item) => {
-      if (item.id === id || item === id) {
+      if (item.id === id) {
         return { ...item, [field]: value };
       }
       return item;
@@ -79,19 +79,7 @@ export default function Stock() {
 
   // Function to update a stock item in Firestore
   const updateFirestoreItem = async (id, item) => {
-    if (id) {
-      const itemDocRef = doc(db, "stock", id);
-      try {
-        // Update the existing document in Firestore
-        await updateDoc(itemDocRef, {
-          name: item.name,
-          quantity: item.quantity,
-        });
-        console.log("Document updated with ID:", id);
-      } catch (error) {
-        console.error("Error updating document: ", error);
-      }
-    } else {
+    if (id.startsWith("temp-")) {
       try {
         // Add a new document to Firestore
         const docRef = await addDoc(stockCollectionRef, {
@@ -102,13 +90,25 @@ export default function Stock() {
         // Update the state with the new document ID
         setStock((prevStock) =>
           prevStock.map((stockItem) =>
-            stockItem === item
+            stockItem.id === id
               ? { ...item, id: docRef.id, isEditable: false, isEdited: false }
               : stockItem
           )
         );
       } catch (error) {
         console.error("Error adding new document: ", error);
+      }
+    } else {
+      const itemDocRef = doc(db, "stock", id);
+      try {
+        // Update the existing document in Firestore
+        await updateDoc(itemDocRef, {
+          name: item.name,
+          quantity: item.quantity,
+        });
+        console.log("Document updated with ID:", id);
+      } catch (error) {
+        console.error("Error updating document: ", error);
       }
     }
   };
